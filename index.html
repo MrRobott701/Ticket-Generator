@@ -80,7 +80,14 @@
       }
 
       // Si pasa la validación, puedes llamar a la función para generar los tickets
-      generarTickets();
+      function generarTickets() {
+      // Lógica para generar los tickets
+      Swal.fire({
+        icon: 'success',
+        title: 'Éxito',
+        text: 'Los tickets se han generado correctamente.',
+      });
+    }
     }
 
     let productos = [];
