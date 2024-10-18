@@ -6,6 +6,8 @@
   <title>Tienda de Abarrotes</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -24,7 +26,7 @@
         <form>
           <div class="mb-3">
             <label for="totalMes" class="form-label">Venta total del mes (mínimo $27000, máximo $45000):</label>
-            <input type="number" id="totalMes" class="form-control" placeholder="Ingrese la venta total" required>
+            <input type="text" id="totalMes" class="form-control" placeholder="Ingrese la venta total" required maxlength="5" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
           </div>
           <div class="mb-3">
             <label for="mes" class="form-label">Seleccione el mes:</label>
@@ -44,19 +46,43 @@
             </select>
           </div>
           <div class="d-grid">
-            <button type="button" class="btn btn-primary" onclick="generarTickets()">Generar Tickets Diarios</button>
-        </div>
-    </form>
+            <button type="button" class="btn btn-primary" onclick="validarCampos()">Generar Tickets Diarios</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-</div>
-</div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="productos.json"></script>
 <script>
+
+  // Autodetectar el mes actual
+  document.addEventListener("DOMContentLoaded", function() {
+      const hoy = new Date();
+      const mesActual = hoy.getMonth() + 1; // Mes actual (1 para enero, 12 para diciembre)
+      document.getElementById('mes').value = mesActual;
+    });
+
+    // Validar el campo de entrada y mostrar alerta con SweetAlert2
+    function validarCampos() {
+      const totalMes = parseFloat(document.getElementById('totalMes').value);
+      
+      if (!totalMes || totalMes < 27000 || totalMes > 45000) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'La venta total mensual debe estar entre $27000 y $45000.',
+        });
+        return;
+      }
+
+      // Si pasa la validación, puedes llamar a la función para generar los tickets
+      generarTickets();
+    }
+
     let productos = [];
 
     // Cargar productos del JSON
@@ -70,54 +96,63 @@
     async function generarTickets() {
       await cargarProductos(); // Asegurarse de que los productos estén cargados
 
-      const totalMes = parseFloat(document.getElementById('totalMes').value);
-      const mes = document.getElementById('mes').value;
-      const diasDelMes = new Date(2024, mes, 0).getDate();
-      
-      // Validación del total mensual
-      if (totalMes < 27000 || totalMes > 45000) {
-        alert("La venta total mensual debe estar entre $27000 y $45000.");
-        return;
-      }
+const totalMes = parseFloat(document.getElementById('totalMes').value);
+const mes = document.getElementById('mes').value;
+const diasDelMes = new Date(2024, mes, 0).getDate();
 
-      const totalDiarioMin = 500;
-      const totalDiarioMax = 1500;
-      let ticketsTotales = [];
-      let totalRestante = totalMes;
+// Validación del total mensual
+if (totalMes < 27000 || totalMes > 45000) {
+  alert("La venta total mensual debe estar entre $27000 y $45000.");
+  return;
+}
 
-      // Promedio diario basado en el total mensual
-      let promedioDiario = totalMes / diasDelMes;
+const totalDiarioMin = 500;
+const totalDiarioMax = 1500;
+let ticketsTotales = [];
+let totalRestante = totalMes;
 
-      // Inicializar la primera venta diaria con una pequeña variación
-      let ventaAnterior = promedioDiario + Math.floor(Math.random() * 100 - 50);
+// Promedio diario basado en el total mensual
+let promedioDiario = totalMes / diasDelMes;
 
-      // Distribuir las ventas de manera que cada día esté entre 500 y 1500 y cerca del día anterior
-      for (let i = 1; i <= diasDelMes; i++) {
-        let diasRestantes = diasDelMes - i + 1;
-        let minPosible = diasRestantes * totalDiarioMin;
-        let maxPosible = diasRestantes * totalDiarioMax;
+// Inicializar la primera venta diaria con una pequeña variación
+let ventaAnterior = promedioDiario + Math.floor(Math.random() * 100 - 50);
 
-        // Asegurarse de que la venta diaria esté dentro del rango permitido y mantenga una convergencia suave
-        let maxDia = Math.min(totalDiarioMax, totalRestante - minPosible + totalDiarioMin);
-        let minDia = Math.max(totalDiarioMin, totalRestante - maxPosible + totalDiarioMax);
+// Distribuir las ventas de manera que cada día esté entre 500 y 1500 y cerca del día anterior
+for (let i = 1; i <= diasDelMes; i++) {
+  let diasRestantes = diasDelMes - i + 1;
+  let minPosible = diasRestantes * totalDiarioMin;
+  let maxPosible = diasRestantes * totalDiarioMax;
 
-        // Ajustar la venta del día basándose en la venta del día anterior, evitando grandes fluctuaciones
-        let variacion = Math.floor(Math.random() * 100 - 50);  // Variación limitada
-        let totalDia = Math.max(minDia, Math.min(maxDia, ventaAnterior + variacion));
+  // Asegurarse de que la venta diaria esté dentro del rango permitido y mantenga una convergencia suave
+  let maxDia = Math.min(totalDiarioMax, totalRestante - minPosible + totalDiarioMin);
+  let minDia = Math.max(totalDiarioMin, totalRestante - maxPosible + totalDiarioMax);
 
-        totalRestante -= totalDia;
-        ventaAnterior = totalDia;  // Actualizar la venta anterior
+  // Ajustar la venta del día basándose en la venta del día anterior
+  let variacion = Math.floor(Math.random() * 100 - 50);  // Variación limitada
+  let totalDia = Math.max(minDia, Math.min(maxDia, ventaAnterior + variacion));
 
-        const ticket = generarTicketDiario(totalDia);
-        ticketsTotales.push({ dia: i, ticket, totalDia });
-      }
+  // Asegurarse de que el total del día varíe al menos 17 pesos del día anterior
+  while (Math.abs(totalDia - ventaAnterior) < 17) {
+    // Forzar una variación mínima si la diferencia es menor a 17
+    totalDia += (Math.random() < 0.5 ? -17 : 17); // Variar el total por al menos 17 pesos
+    totalDia = Math.max(minDia, Math.min(maxDia, totalDia)); // Mantener dentro de los límites
+  }
 
-      // Mostrar tickets en consola y generar PDF
-      mostrarTicketsEnConsola(ticketsTotales);
-      generarPDF(ticketsTotales);
+  totalRestante -= totalDia;
+  ventaAnterior = totalDia;  // Actualizar la venta anterior
 
-        // Generar el PDF resumen al final
-  generarPDFResumenMensual(ticketsTotales); 
+  const ticket = generarTicketDiario(totalDia);
+  ticketsTotales.push({ dia: i, ticket, totalDia });
+}
+
+// Mostrar tickets en consola y generar PDF
+mostrarTicketsEnConsola(ticketsTotales);
+generarPDF(ticketsTotales);
+
+// Generar el PDF resumen al final
+generarPDFResumenMensual(ticketsTotales);  
+
+    
     }
 
     // Generar ticket diario con un total específico
@@ -155,12 +190,19 @@
 
       console.log(`\nSuma total de todos los tickets del mes: $${sumaTotalMes.toFixed(2)}`);
     }
+    function redondearPrecio(precio) {
+    return (Math.round(precio * 2) / 2).toFixed(2);
+}
+
+
 
 // Función para generar PDF de todos los tickets
 function generarPDF(ticketsTotales) {
+
   const { jsPDF } = window.jspdf;
 
   let delay = 0;
+  let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
 
   // Ancho estándar de una impresora térmica de 80mm
   const pageWidth = 80; // 80mm de ancho
@@ -169,7 +211,7 @@ function generarPDF(ticketsTotales) {
     setTimeout(() => {
         // Calcular la altura de la página para este ticket individualmente
     let pageHeight = 10; // Espacio para el título
-    pageHeight += ticket.length * 5; // Cada producto toma 5mm de altura
+    pageHeight += ticket.length * 7; // Cada producto toma 5mm de altura
     pageHeight += 40; // Espacio para el total del día
 
     // Crear un nuevo documento PDF para cada ticket
@@ -185,22 +227,28 @@ function generarPDF(ticketsTotales) {
     const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
 
     // Poner el título en negritas y centrado
-    doc.setFont("helvetica", "bold"); // Cambiar a negrita
+    doc.setFont("courier", "bold"); // Cambiar a negrita
     doc.setFontSize(12); // Tamaño más grande para el título
     y += 8; // Espacio después del título
     doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
-    y += 8; // Espacio después del título
-
+    doc.setFontSize(11);
+    y += 5; // Espacio después del título
+    doc.text("COL. TODOS SANTOS", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
     doc.setFontSize(10);
+    y += 8; // Espacio después del título
     doc.text(`Fecha: ${dia} / ${nombreMes} / 2024`, x, y);
+    y += 5;
+    folio += 1 ;
+    doc.text(`Folio: ${folio}`, x, y);
     y += 8;
-    doc.text("-------------VENTAS DEL DÍA-------------", pageWidth / 2, y, { align: 'center' });
+    doc.text("--------VENTAS DEL DÍA--------", pageWidth / 2, y, { align: 'center' });
     y += 8;
-    doc.setFont("helvetica", "normal");
+    doc.setFont("courier", "bold");
+    doc.setFontSize(9);
 
     ticket.forEach(producto => {
       // Utiliza splitTextToSize para dividir el texto automáticamente si excede el ancho del ticket
-      const nombreProducto = `${producto.nombre}: $${producto.precio.toFixed(2)}`;
+      const nombreProducto = `${producto.nombre}: $${redondearPrecio(producto.precio)}`;
       const lineas = doc.splitTextToSize(nombreProducto, pageWidth - 10); // Ajustar el ancho permitido
       lineas.forEach(linea => {
         doc.text(linea, x, y);
@@ -208,10 +256,11 @@ function generarPDF(ticketsTotales) {
       });
     });
 
-    doc.setFont("helvetica", "bold");
-    doc.text(`--------------------------------------------------------`, x, y);
+    doc.setFont("courier", "bold");
+    doc.text("------------------------------------", pageWidth / 2, y, { align: 'center' });
     y += 5;
-    doc.text(`Venta Total: $${totalDia.toFixed(2)}`, pageWidth / 2, y, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`Venta Total: $${Math.floor(totalDia.toFixed(2))}.00`, pageWidth / 2, y, { align: 'center' });
     y += 20;
 
     // Guardar el PDF
@@ -267,7 +316,8 @@ function generarPDFResumenMensual(ticketsTotales) {
       doc.setFont("helvetica", "bold");
       doc.text(`Día ${dia}:`, xColumna1, yColumna1);
       doc.setFont("helvetica", "normal");
-      doc.text(`Venta total: $${totalDia.toFixed(2)}`, xColumna1 + 30, yColumna1);
+      doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna1 + 30, yColumna1);
+      
       yColumna1 += 10;
 
       if (yColumna1 > 270) { // Si la columna se llena, cambiar a la siguiente columna
@@ -278,7 +328,7 @@ function generarPDFResumenMensual(ticketsTotales) {
       doc.setFont("helvetica", "bold");
       doc.text(`Día ${dia}:`, xColumna2, yColumna2);
       doc.setFont("helvetica", "normal");
-      doc.text(`Venta total: $${totalDia.toFixed(2)}`, xColumna2 + 30, yColumna2);
+      doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna2 + 30, yColumna2);
       yColumna2 += 10;
 
       if (yColumna2 > 270) { // Si la segunda columna se llena, añadir una nueva página
@@ -315,14 +365,6 @@ function generarPDFResumenMensual(ticketsTotales) {
   // Guardar el PDF como archivo separado
   doc.save(`Resumen_Ventas_${nombreMes}_2024.pdf`);
 }
-
-
-
-
-
-
-
-
   </script>
 </body>
 </html>
