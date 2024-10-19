@@ -212,7 +212,7 @@ function generarPDF(ticketsTotales) {
   let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
 
   // Ancho estándar de una impresora térmica de 80mm
-  const pageWidth = 80; // 80mm de ancho
+  const pageWidth = 56 // 80mm de ancho
   
   ticketsTotales.forEach(({ dia, ticket, totalDia }, index) => {
     setTimeout(() => {
