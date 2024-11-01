@@ -299,7 +299,7 @@ async function generarPDF(ticketsTotales) {
   console.log('Inicio de generación de PDFs de tickets diarios.');
   const { jsPDF } = window.jspdf;
   let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
-  const pageWidth = 56; // Ancho estándar de una impresora térmica de 56mm (convertido a mm)
+  const pageWidth = 58; // Ancho estándar de una impresora térmica de 58mm (convertido a mm)
 
   for (const { dia, ticket, totalDia } of ticketsTotales) {
     console.log(`Generando PDF para el día ${dia}.`);
