@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tienda de Abarrotes</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -53,24 +53,35 @@
     </div>
   </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script>
 
-  // Autodetectar el mes actual
-  document.addEventListener("DOMContentLoaded", function() {
+    // Autodetectar el mes actual
+    document.addEventListener("DOMContentLoaded", function() {
       const hoy = new Date();
       const mesActual = hoy.getMonth() + 1; // Mes actual (1 para enero, 12 para diciembre)
       document.getElementById('mes').value = mesActual;
+      console.log(`Mes actual detectado: ${mesActual}`);
     });
 
     // Validar el campo de entrada y mostrar alerta con SweetAlert2
-    function validarCampos() {
+    async function validarCampos() {
+	Swal.fire({
+  title: 'GENERANDO TICKETS...',
+  text: 'Por favor, espera.',
+  allowOutsideClick: false,
+  didOpen: () => {
+    Swal.showLoading(); // Muestra un indicador de carga
+  }
+});
+      console.log('Inicio de validación de campos.');
       const totalMes = parseFloat(document.getElementById('totalMes').value);
       
       if (!totalMes || totalMes < 27000 || totalMes > 45000) {
+        console.log('Validación fallida: Total mensual fuera de rango.');
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -79,95 +90,164 @@
         return;
       }
 
-      // Si pasa la validación, puedes llamar a la función para generar los tickets
-      function generarTickets() {
-      // Lógica para generar los tickets
-      Swal.fire({
-        icon: 'success',
-        title: 'Éxito',
-        text: 'Los tickets se han generado correctamente.',
-      });
-    }
+      console.log('Validación exitosa: Campos correctos.');
+      
+      // Si pasa la validación, llamar a la función para generar los tickets
+      try {
+        await generarTickets();
+      } catch (error) {
+        console.error('Error al generar tickets:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al generar los tickets. Por favor, intenta nuevamente.',
+        });
+      }
     }
 
     let productos = [];
 
     // Cargar productos del JSON
     async function cargarProductos() {
-      const response = await fetch('productos.json');
-      const data = await response.json();
-      productos = data.productos;
+      console.log('Inicio de carga de productos.');
+      try {
+        const response = await fetch('productos.json');
+        if (!response.ok) {
+          throw new Error('No se pudo cargar productos.json');
+        }
+        const data = await response.json();
+        productos = data.productos;
+        console.log(`Productos cargados: ${productos.length} productos disponibles.`);
+      } catch (error) {
+        console.error('Error cargando productos:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los productos. Por favor, intenta de nuevo más tarde.',
+        });
+        throw error; // Re-throw para manejarlo en validarCampos
+      }
     }
 
-    // Función para generar tickets
-    async function generarTickets() {
-      await cargarProductos(); // Asegurarse de que los productos estén cargados
+// Función para generar tickets
+async function generarTickets() {
+  await cargarProductos(); // Asegurarse de que los productos estén cargados
 
-const totalMes = parseFloat(document.getElementById('totalMes').value);
-const mes = document.getElementById('mes').value;
-const diasDelMes = new Date(2024, mes, 0).getDate();
+  const totalMes = parseInt(document.getElementById('totalMes').value, 10);
+  const mes = parseInt(document.getElementById('mes').value, 10);
+  const diasDelMes = new Date(2024, mes, 0).getDate();
 
-// Validación del total mensual
-if (totalMes < 27000 || totalMes > 45000) {
-  alert("La venta total mensual debe estar entre $27000 y $45000.");
-  return;
-}
-
-const totalDiarioMin = 500;
-const totalDiarioMax = 1500;
-let ticketsTotales = [];
-let totalRestante = totalMes;
-
-// Promedio diario basado en el total mensual
-let promedioDiario = totalMes / diasDelMes;
-
-// Inicializar la primera venta diaria con una pequeña variación
-let ventaAnterior = promedioDiario + Math.floor(Math.random() * 100 - 50);
-
-// Distribuir las ventas de manera que cada día esté entre 500 y 1500 y cerca del día anterior
-for (let i = 1; i <= diasDelMes; i++) {
-  let diasRestantes = diasDelMes - i + 1;
-  let minPosible = diasRestantes * totalDiarioMin;
-  let maxPosible = diasRestantes * totalDiarioMax;
-
-  // Asegurarse de que la venta diaria esté dentro del rango permitido y mantenga una convergencia suave
-  let maxDia = Math.min(totalDiarioMax, totalRestante - minPosible + totalDiarioMin);
-  let minDia = Math.max(totalDiarioMin, totalRestante - maxPosible + totalDiarioMax);
-
-  // Ajustar la venta del día basándose en la venta del día anterior
-  let variacion = Math.floor(Math.random() * 100 - 50);  // Variación limitada
-  let totalDia = Math.max(minDia, Math.min(maxDia, ventaAnterior + variacion));
-
-  // Asegurarse de que el total del día varíe al menos 17 pesos del día anterior
-  while (Math.abs(totalDia - ventaAnterior) < 17) {
-    // Forzar una variación mínima si la diferencia es menor a 17
-    totalDia += (Math.random() < 0.5 ? -17 : 17); // Variar el total por al menos 17 pesos
-    totalDia = Math.max(minDia, Math.min(maxDia, totalDia)); // Mantener dentro de los límites
+  // Validación del total mensual
+  if (totalMes < 27000 || totalMes > 45000) {
+    alert("La venta total mensual debe estar entre $27,000 y $45,000.");
+    return;
   }
 
-  totalRestante -= totalDia;
-  ventaAnterior = totalDia;  // Actualizar la venta anterior
+  const totalDiarioMin = 500;
+  const totalDiarioMax = 1500;
+  let ticketsTotales = [];
 
-  const ticket = generarTicketDiario(totalDia);
-  ticketsTotales.push({ dia: i, ticket, totalDia });
-}
+  // Validar que es posible tener ventas únicas
+  const posiblesVentas = totalDiarioMax - totalDiarioMin + 1; // 1001 valores únicos
+  if (diasDelMes > posiblesVentas) {
+    alert(`No es posible generar ${diasDelMes} ventas únicas dentro del rango ${totalDiarioMin} - ${totalDiarioMax}.`);
+    return;
+  }
 
-// Mostrar tickets en consola y generar PDF
-mostrarTicketsEnConsola(ticketsTotales);
-generarPDF(ticketsTotales);
+  // Calcular la suma mínima y máxima posible con ventas únicas
+  let sumaMin = 0;
+  for (let i = 0; i < diasDelMes; i++) {
+    sumaMin += totalDiarioMin + i;
+  }
 
-// Generar el PDF resumen al final
-generarPDFResumenMensual(ticketsTotales);  
+  let sumaMax = 0;
+  for (let i = 0; i < diasDelMes; i++) {
+    sumaMax += totalDiarioMax - i;
+  }
 
-    
+  if (totalMes < sumaMin || totalMes > sumaMax) {
+    alert(`No es posible generar un total mensual de ${totalMes} con ventas únicas. El mínimo posible es ${sumaMin} y el máximo es ${sumaMax}.`);
+    return;
+  }
+
+  // Crear una lista de posibles ventas
+  let posiblesVentasList = [];
+  for (let v = totalDiarioMin; v <= totalDiarioMax; v++) {
+    posiblesVentasList.push(v);
+  }
+
+  // Shuffle la lista de posibles ventas para distribuir aleatoriamente
+  for (let i = posiblesVentasList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [posiblesVentasList[i], posiblesVentasList[j]] = [posiblesVentasList[j], posiblesVentasList[i]];
+  }
+
+  // Implementar una función de backtracking para seleccionar ventas únicas que sumen totalMes
+  let ventasSeleccionadas = [];
+
+  function backtrack(index, currentSum, path) {
+    if (path.length === diasDelMes) {
+      if (currentSum === totalMes) {
+        ventasSeleccionadas = [...path];
+        return true;
+      }
+      return false;
     }
+
+    for (let i = index; i < posiblesVentasList.length; i++) {
+      const venta = posiblesVentasList[i];
+      
+      // Si la suma actual más la venta excede el totalMes, saltar
+      if (currentSum + venta > totalMes) continue;
+
+      // Añadir la venta al camino
+      path.push(venta);
+
+      // Recursivamente intentar añadir más ventas
+      if (backtrack(i + 1, currentSum + venta, path)) {
+        return true;
+      }
+
+      // Remover la venta si no conduce a una solución
+      path.pop();
+    }
+
+    return false;
+  }
+
+  const success = backtrack(0, 0, []);
+
+  if (!success) {
+    alert("No se pudo generar una distribución de ventas únicas que coincida con el total mensual.");
+    return;
+  }
+
+  // Asignar las ventas seleccionadas a los tickets
+  for (let i = 0; i < diasDelMes; i++) {
+    const dia = i + 1;
+    const totalDia = ventasSeleccionadas[i];
+    const ticket = generarTicketDiario(totalDia);
+    ticketsTotales.push({ dia, ticket, totalDia });
+    console.log(`Venta final para el día ${dia}: $${totalDia}`);
+  }
+
+  // Mostrar tickets en consola y generar PDFs
+  //mostrarTicketsEnConsola(ticketsTotales);
+  await generarPDF(ticketsTotales);
+  await generarPDFResumenMensual(ticketsTotales);  
+
+  console.log('Proceso de generación de tickets y PDFs completado.');
+}
 
     // Generar ticket diario con un total específico
     function generarTicketDiario(totalDia) {
+      console.log('Generando ticket diario.');
       let ticket = [];
       let total = totalDia;
 
-      while (total > 0) {
+      let iteraciones = 0;
+      const maxIteraciones = 100;
+      while (total > 0 && iteraciones < maxIteraciones) {
         let producto = productos[Math.floor(Math.random() * productos.length)];
         if (total - producto.precio >= 0) {
           ticket.push(producto);
@@ -178,6 +258,11 @@ generarPDFResumenMensual(ticketsTotales);
           ticket.push(productoAjustado);
           total = 0;
         }
+        iteraciones++;
+      }
+
+      if (iteraciones >= maxIteraciones) {
+        console.warn('Se alcanzó el límite de iteraciones al generar el ticket diario.');
       }
 
       return ticket;
@@ -185,41 +270,54 @@ generarPDFResumenMensual(ticketsTotales);
 
     // Función para mostrar los tickets en la consola
     function mostrarTicketsEnConsola(ticketsTotales) {
+      console.log('Mostrando tickets en la consola.');
       let sumaTotalMes = 0;
       ticketsTotales.forEach(({ dia, ticket, totalDia }) => {
         console.log(`Ticket del día ${dia}:`);
         ticket.forEach(producto => {
           console.log(`${producto.nombre} --------- $${producto.precio.toFixed(2)}`);
         });
-        console.log(`Total: ${dia}: $${totalDia.toFixed(2)}\n`);
+        console.log(`Total: Día ${dia}: $${totalDia.toFixed(2)}\n`);
         sumaTotalMes += totalDia;
       });
 
       console.log(`\nSuma total de todos los tickets del mes: $${sumaTotalMes.toFixed(2)}`);
     }
+
+    // Redondear precio a medio punto
     function redondearPrecio(precio) {
-    return (Math.round(precio * 2) / 2).toFixed(2);
-}
+      return (Math.round(precio * 2) / 2).toFixed(2);
+    }
+
+	
+	// Función delay para agregar tiempo de espera
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 
-
-// Función para generar PDF de todos los tickets
-function generarPDF(ticketsTotales) {
-
+// Función para generar PDF de todos los tickets con un retraso entre cada generación
+async function generarPDF(ticketsTotales) {
+  console.log('Inicio de generación de PDFs de tickets diarios.');
   const { jsPDF } = window.jspdf;
-
-  let delay = 0;
   let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
+  const pageWidth = 56; // Ancho estándar de una impresora térmica de 56mm (convertido a mm)
 
-  // Ancho estándar de una impresora térmica de 80mm
-  const pageWidth = 56 // 80mm de ancho
-  
-  ticketsTotales.forEach(({ dia, ticket, totalDia }, index) => {
-    setTimeout(() => {
-        // Calcular la altura de la página para este ticket individualmente
-    let pageHeight = 10; // Espacio para el título
-    pageHeight += ticket.length * 7; // Cada producto toma 5mm de altura
-    pageHeight += 40; // Espacio para el total del día
+  for (const { dia, ticket, totalDia } of ticketsTotales) {
+    console.log(`Generando PDF para el día ${dia}.`);
+
+    // Calcular la altura de la página considerando cada línea de texto
+    let pageHeight = 20; // Espacio inicial para el título, fecha y folio
+    const lineHeight = 7; // Altura de cada línea de texto
+    const linesPerProduct = ticket.map(producto => {
+      const nombreProducto = `${producto.nombre}: $${redondearPrecio(producto.precio)}`;
+      return Math.ceil(nombreProducto.length / 20); // Dividir en líneas de aprox. 20 caracteres
+    });
+    
+    // Sumar la altura necesaria para cada línea de cada producto
+    linesPerProduct.forEach(lineCount => {
+      pageHeight += lineCount * lineHeight;
+    });
+
+    pageHeight += 0; // Espacio adicional para el total y el pie de página
 
     // Crear un nuevo documento PDF para cada ticket
     const doc = new jsPDF({
@@ -235,143 +333,192 @@ function generarPDF(ticketsTotales) {
 
     // Poner el título en negritas y centrado
     doc.setFont("courier", "bold"); // Cambiar a negrita
-    doc.setFontSize(12); // Tamaño más grande para el título
+    doc.setFontSize(11); // Tamaño más grande para el título
     y += 8; // Espacio después del título
     doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     y += 5; // Espacio después del título
     doc.text("COL. TODOS SANTOS", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     y += 8; // Espacio después del título
-    doc.text(`Fecha: ${dia} / ${nombreMes} / 2024`, x, y);
+    doc.text(`Fecha: ${dia}/${nombreMes}/2024`, x, y);
     y += 5;
-    folio += 1 ;
+    folio += 1;
     doc.text(`Folio: ${folio}`, x, y);
     y += 8;
-    doc.text("--------VENTAS DEL DÍA--------", pageWidth / 2, y, { align: 'center' });
+    doc.text("------VENTAS DEL DÍA------", pageWidth / 2, y, { align: 'center' });
     y += 8;
-    doc.setFont("courier", "bold");
-    doc.setFontSize(9);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(8);
 
-    ticket.forEach(producto => {
-      // Utiliza splitTextToSize para dividir el texto automáticamente si excede el ancho del ticket
+    for (const producto of ticket) {
       const nombreProducto = `${producto.nombre}: $${redondearPrecio(producto.precio)}`;
       const lineas = doc.splitTextToSize(nombreProducto, pageWidth - 10); // Ajustar el ancho permitido
-      lineas.forEach(linea => {
+      for (const linea of lineas) {
         doc.text(linea, x, y);
         y += 5; // Espacio entre líneas
-      });
-    });
+      }
+    }
 
     doc.setFont("courier", "bold");
-    doc.text("------------------------------------", pageWidth / 2, y, { align: 'center' });
+    doc.text("-----------------------------", pageWidth / 2, y, { align: 'center' });
     y += 5;
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.text(`Venta Total: $${Math.floor(totalDia.toFixed(2))}.00`, pageWidth / 2, y, { align: 'center' });
-    y += 20;
+    y += 10;
 
     // Guardar el PDF
-    doc.save(`Venta ${dia} de ${nombreMes} 2024.pdf`);
-
-    // Si no es el último ticket, agregamos una nueva página
-    if (index < ticketsTotales.length - 1) {
-      doc.addPage(); // Agregar una nueva página para el siguiente ticket
-    }
-  }, delay);
-
-delay += 1000; // Añadir un segundo de retraso entre cada PDF
-});
-}
-
-
-
-function generarPDFResumenMensual(ticketsTotales) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'letter' // Tamaño carta
-  });
-
-  let y = 20; // Margen superior inicial
-  const pageWidth = 210; // Ancho de página carta en mm
-  const mesSeleccionado = document.getElementById('mes').value;
-  const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
-
-  // Título en la parte superior centrado
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' });
-  y += 10;
-
-  // Subtítulo con el mes
-  doc.setFontSize(12);
-  doc.text(`Resumen de ventas del mes de ${nombreMes} 2024`, pageWidth / 2, y, { align: 'center' });
-  y += 20;
-
-  let sumaTotalMes = 0;
-  let xColumna1 = 20; // Posición de la primera columna
-  let xColumna2 = 120; // Posición de la segunda columna
-  let columnaActual = 1; // Controla en qué columna estamos
-  let yColumna1 = y;
-  let yColumna2 = y;
-
-  // Listar cada día con su venta, distribuyendo en dos columnas
-  ticketsTotales.forEach(({ dia, totalDia }) => {
-    if (columnaActual === 1) {
-      // Primera columna
-      doc.setFont("helvetica", "bold");
-      doc.text(`Día ${dia}:`, xColumna1, yColumna1);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna1 + 30, yColumna1);
-      
-      yColumna1 += 10;
-
-      if (yColumna1 > 270) { // Si la columna se llena, cambiar a la siguiente columna
-        columnaActual = 2;
-      }
-    } else {
-      // Segunda columna
-      doc.setFont("helvetica", "bold");
-      doc.text(`Día ${dia}:`, xColumna2, yColumna2);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna2 + 30, yColumna2);
-      yColumna2 += 10;
-
-      if (yColumna2 > 270) { // Si la segunda columna se llena, añadir una nueva página
-        doc.addPage();
-        yColumna1 = 20; // Reiniciar la primera columna en la nueva página
-        yColumna2 = 20; // Reiniciar la segunda columna en la nueva página
-        columnaActual = 1; // Volver a la primera columna
-      }
+    try {
+      await descargarPDF(doc, `Venta_${dia}_de_${nombreMes}_2024.pdf`);
+      console.log(`PDF generado y descargado para el día ${dia}.`);
+    } catch (error) {
+      console.error(`Error al descargar el PDF para el día ${dia}:`, error);
     }
 
-    sumaTotalMes += totalDia;
-  });
-
-  // Asegurar espacio suficiente para el resumen final en la segunda columna
-  let yResumen = Math.max(yColumna1, yColumna2) + 20;
-  
-  if (columnaActual === 2 && yColumna2 + 20 <= 270) {
-    yResumen = yColumna2 + 20; // Mostrar en la segunda columna si hay espacio
-  } else if (yResumen > 270) {
-    // Si no hay espacio suficiente en la página actual, agregar una nueva página
-    doc.addPage();
-    yResumen = 20; // Reiniciar el margen superior en la nueva página
+    // Agrega un retraso de 1 segundo antes de pasar al siguiente ticket
+    console.log('Total de Venta del Día:', totalDia);
+    await delay(1000);
   }
 
-  // Ajustar el texto del resumen más a la derecha
-  let xResumen = 120; // Ajusta este valor para mover más a la derecha el texto
-
-  // Resumen final con el total de todas las ventas del mes
-  doc.setFont("helvetica", "bold");
-  doc.text("Resumen final", xResumen, yResumen);
-  yResumen += 10;
-  doc.text(`Venta Total: $${sumaTotalMes.toFixed(2)}`, xResumen, yResumen);
-
-  // Guardar el PDF como archivo separado
-  doc.save(`Resumen_Ventas_${nombreMes}_2024.pdf`);
+  console.log('Todos los PDFs de tickets diarios han sido generados.');
 }
+
+    
+	
+    // Función para descargar el PDF utilizando Promesas
+    function descargarPDF(doc, nombreArchivo) {
+      return new Promise((resolve, reject) => {
+        try {
+          doc.save(nombreArchivo);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
+    // Función para generar PDF resumen mensual
+    async function generarPDFResumenMensual(ticketsTotales) {
+      console.log('Inicio de generación del PDF resumen mensual.');
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'letter' // Tamaño carta
+      });
+
+      let y = 20; // Margen superior inicial
+      const pageWidth = 210; // Ancho de página carta en mm
+      const mesSeleccionado = document.getElementById('mes').value;
+      const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
+
+      // Título en la parte superior centrado
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' });
+      y += 10;
+
+      // Subtítulo con el mes
+      doc.setFontSize(12);
+      doc.text(`Resumen de ventas del mes de ${nombreMes} 2024`, pageWidth / 2, y, { align: 'center' });
+      y += 20;
+
+      let sumaTotalMes = 0;
+      let xColumna1 = 20; // Posición de la primera columna
+      let xColumna2 = 120; // Posición de la segunda columna
+      let columnaActual = 1; // Controla en qué columna estamos
+      let yColumna1 = y;
+      let yColumna2 = y;
+
+      // Listar cada día con su venta, distribuyendo en dos columnas
+      for (const { dia, totalDia } of ticketsTotales) {
+        if (columnaActual === 1) {
+          // Primera columna
+          doc.setFont("helvetica", "bold");
+          doc.text(`Día ${dia}:`, xColumna1, yColumna1);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna1 + 30, yColumna1);
+          
+          yColumna1 += 10;
+
+          if (yColumna1 > 270) { // Si la columna se llena, cambiar a la siguiente columna
+            columnaActual = 2;
+            console.log(`Cambio a la segunda columna en el resumen mensual.`);
+          }
+        } else {
+          // Segunda columna
+          doc.setFont("helvetica", "bold");
+          doc.text(`Día ${dia}:`, xColumna2, yColumna2);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna2 + 30, yColumna2);
+          yColumna2 += 10;
+
+          if (yColumna2 > 270) { // Si la segunda columna se llena, añadir una nueva página
+            doc.addPage();
+            yColumna1 = 20; // Reiniciar la primera columna en la nueva página
+            yColumna2 = 20; // Reiniciar la segunda columna en la nueva página
+            columnaActual = 1; // Volver a la primera columna
+            console.log(`Añadida nueva página en el resumen mensual.`);
+          }
+        }
+
+        sumaTotalMes += totalDia;
+      }
+
+      // Asegurar espacio suficiente para el resumen final en la segunda columna
+      let yResumen = Math.max(yColumna1, yColumna2) + 20;
+      
+      if (columnaActual === 2 && yColumna2 + 20 <= 270) {
+        yResumen = yColumna2 + 20; // Mostrar en la segunda columna si hay espacio
+      } else if (yResumen > 270) {
+        // Si no hay espacio suficiente en la página actual, agregar una nueva página
+        doc.addPage();
+        yResumen = 20; // Reiniciar el margen superior en la nueva página
+        console.log(`Añadida nueva página para el resumen final mensual.`);
+      }
+
+      // Ajustar el texto del resumen más a la derecha
+      let xResumen = 120; // Ajusta este valor para mover más a la derecha el texto
+
+      // Resumen final con el total de todas las ventas del mes
+      doc.setFont("helvetica", "bold");
+      doc.text("Resumen final", xResumen, yResumen);
+      yResumen += 10;
+      doc.text(`Venta Total: $${sumaTotalMes.toFixed(2)}`, xResumen, yResumen);
+	  yResumen += 40;
+      
+      // Guardar el PDF resumen mensual
+      try {
+        await descargarPDF(doc, `Resumen_Ventas_${nombreMes}_2024.pdf`);
+        console.log(`PDF resumen mensual generado y descargado para el mes de ${nombreMes}.`);
+        Swal.close();
+		Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'TICKETS Y RESUMEN MENSUAL CREADOS CON ÉXITO.',
+        });
+      } catch (error) {
+        console.error('Error al descargar el PDF resumen mensual:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al generar el resumen mensual. Por favor, intenta nuevamente.',
+        });
+      }
+    }
+
+    // Función para descargar el PDF utilizando Promesas
+    function descargarPDF(doc, nombreArchivo) {
+      return new Promise((resolve, reject) => {
+        try {
+          doc.save(nombreArchivo);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    }
+
   </script>
 </body>
 </html>
