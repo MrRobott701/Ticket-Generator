@@ -135,7 +135,7 @@ async function generarTickets() {
 
   const totalMes = parseInt(document.getElementById('totalMes').value, 10);
   const mes = parseInt(document.getElementById('mes').value, 10);
-  const diasDelMes = new Date(2024, mes, 0).getDate();
+  const diasDelMes = new Date(2025, mes, 0).getDate();
 
   // Validación del total mensual
   if (totalMes < 24000 || totalMes > 45000) {
@@ -341,7 +341,7 @@ async function generarPDF(ticketsTotales) {
     doc.text("COL. TODOS SANTOS", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
     doc.setFontSize(9);
     y += 8; // Espacio después del título
-    doc.text(`Fecha: ${dia}/${nombreMes}/2024`, x, y);
+    doc.text(`Fecha: ${dia}/${nombreMes}/2025`, x, y);
     y += 5;
     folio += 1;
     doc.text(`Folio: ${folio}`, x, y);
@@ -369,7 +369,7 @@ async function generarPDF(ticketsTotales) {
 
     // Guardar el PDF
     try {
-      await descargarPDF(doc, `Venta_${dia}_de_${nombreMes}_2024.pdf`);
+      await descargarPDF(doc, `Venta_${dia}_de_${nombreMes}_2025.pdf`);
       console.log(`PDF generado y descargado para el día ${dia}.`);
     } catch (error) {
       console.error(`Error al descargar el PDF para el día ${dia}:`, error);
@@ -420,7 +420,7 @@ async function generarPDF(ticketsTotales) {
 
       // Subtítulo con el mes
       doc.setFontSize(12);
-      doc.text(`Resumen de ventas del mes de ${nombreMes} 2024`, pageWidth / 2, y, { align: 'center' });
+      doc.text(`Resumen de ventas del mes de ${nombreMes} 2025`, pageWidth / 2, y, { align: 'center' });
       y += 20;
 
       let sumaTotalMes = 0;
@@ -489,7 +489,7 @@ async function generarPDF(ticketsTotales) {
       
       // Guardar el PDF resumen mensual
       try {
-        await descargarPDF(doc, `Resumen_Ventas_${nombreMes}_2024.pdf`);
+        await descargarPDF(doc, `Resumen_Ventas_${nombreMes}_2025.pdf`);
         console.log(`PDF resumen mensual generado y descargado para el mes de ${nombreMes}.`);
         Swal.close();
 		Swal.fire({
