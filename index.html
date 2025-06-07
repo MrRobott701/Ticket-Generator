@@ -25,7 +25,7 @@
       <div class="col-md-6 offset-md-3">
         <form>
           <div class="mb-3">
-            <label for="totalMes" class="form-label">Venta total del mes (mínimo $24000, máximo $45000):</label>
+            <label for="totalMes" class="form-label">Venta total del mes (mínimo $23000, máximo $45000):</label>
             <input type="text" id="totalMes" class="form-control" placeholder="Ingrese la venta total" required maxlength="5" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
           </div>
           <div class="mb-3">
@@ -58,46 +58,652 @@
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <script>
+    // Productos precargados
+    const productos = [
+    { "nombre": "Bix Mix Queso 185g.", "precio": 33.00},
+{ "nombre": "Bombon Grande 400g", "precio": 36.50},
+{ "nombre": "Frikos 75g", "precio": 16.00},
+{ "nombre": "Froot Loops  Bolsa De 90g", "precio": 44.00},
+{ "nombre": "Gatorade Fruttas 600ml ", "precio": 26.50},
+{ "nombre": "Gel Ego Black Grande De 450ml.", "precio": 42.50},
+{ "nombre": "LECHE JERSEY 1L ENTERA ", "precio": 31.00},
+{ "nombre": "Marlboro Rojo Blando 20.", "precio": 88.00},
+{ "nombre": "Pal Gato", "precio": 38.50},
+{ "nombre": "Panque Nuez 280g", "precio": 40.00},
+{ "nombre": "Prispas Picositas 46g.", "precio": 16.00},
+{ "nombre": "Repuesto Para Rodillo 9", "precio": 29.00},
+{ "nombre": "Saca Ceja  Curtis Chica", "precio": 18.00},
+{ "nombre": "Topochico Agua Mineral  De 600Ml.", "precio": 23.00},
+{ "nombre": "1 Marlboro Rojo Largo 20.", "precio": 88.00},
+{ "nombre": "1 Pall Mall Tokio 20", "precio": 79.00},
+{ "nombre": "2 Marlboro Largo Blanco 20.", "precio": 88.00},
+{ "nombre": "2 Pall Mall Alaska 20", "precio": 79.00},
+{ "nombre": "3 Marlboro Rojo Corto 20", "precio": 88.00},
+{ "nombre": "3 Pall Mall Pepino 20", "precio": 79.00},
+{ "nombre": "4 Marlboro Blanco Corto 20.", "precio": 88.00},
+{ "nombre": "4 Pall Mall Blancos 20", "precio": 79.00},
+{ "nombre": "5 Marlboro Sandia 20.", "precio": 73.00},
+{ "nombre": "5 Pall Mall Rojo 20", "precio": 79.00},
+{ "nombre": "Cargador Mi travel", "precio": 200.00},
+{ "nombre": "Cargador Motorola ", "precio": 200.00},
+{ "nombre": "Cargador Oppo", "precio": 200.00},
+{ "nombre": "Cargador Original Samsug", "precio": 200.00},
+{ "nombre": "Cargador Para Carro Tipo C 20w.", "precio": 179.00},
+{ "nombre": "Cargador Para Iphone", "precio": 200.00},
+{ "nombre": "Cargador Samsung Galaxi S20", "precio": 200.00},
+{ "nombre": "Cargador USB Para Iphone", "precio": 200.00},
+{ "nombre": "Carlos V 18g", "precio": 10.00},
+{ "nombre": "Carne Molida Mezquite 400g.", "precio": 63.00},
+{ "nombre": "Carne Molida Su Karne 400 Gr", "precio": 70.00},
+{ "nombre": "Carne Molida Sukarne 400g", "precio": 84.00},
+{ "nombre": "Carpeta Binder Mini", "precio": 20.00},
+{ "nombre": "Cartera De Huevo", "precio": 99.00},
+{ "nombre": "Cartulina Blanca.-", "precio": 12.00},
+{ "nombre": "Cartulina Color 50pz Sams 289.47", "precio": 12.00},
+{ "nombre": "Cartulina Color--(-Samñs 5.78 Pz)", "precio": 12.00},
+{ "nombre": "Casera Jalapeño 65g", "precio": 19.00},
+{ "nombre": "Catch-A Max 2pz", "precio": 39.50},
+{ "nombre": "Catsup 225g del Monte", "precio": 17.00},
+{ "nombre": "Catsup Del Monte 320g", "precio": 19.00},
+{ "nombre": "Cautin", "precio": 108.50},
+{ "nombre": "Cebolla ", "precio": 10.00},
+{ "nombre": "Cebolla Molida La Familia", "precio": 14.00},
+{ "nombre": "Cebolla Morada ", "precio": 26.00},
+{ "nombre": "Cebolla O Regadera Plastico", "precio": 49.00},
+{ "nombre": "Cebolla Oregadera Metal", "precio": 90.00},
+{ "nombre": "Cepilllo Para Piojos De Color", "precio": 10.00},
+{ "nombre": "Cepillo Chico Perico", "precio": 20.00},
+{ "nombre": "Cepillo Colgate Extra Clean", "precio": 16.00},
+{ "nombre": "Cepillo De Plastico Tipo Plancha", "precio": 25.00},
+{ "nombre": "Cepillo Denal Astro Infantil", "precio": 16.00},
+{ "nombre": "Cepillo Dental Colgate", "precio": 16.00},
+{ "nombre": "Cepillo Dental Para Niño", "precio": 20.00},
+{ "nombre": "Cereal Zucaritas Bolsa De 125g", "precio": 24.00},
+{ "nombre": "Cereal Zucaritas Caja De 260g.", "precio": 47.50},
+{ "nombre": "Cerezas White Swan  170g.", "precio": 38.50},
+{ "nombre": "Cerillo Guerrero", "precio": 4.00},
+{ "nombre": "Cerillo Relampago", "precio": 2.00},
+{ "nombre": "Cerillos Aztecas", "precio": 3.00},
+{ "nombre": "Cerillos Flama Caja Grande.", "precio": 10.00},
+{ "nombre": "Cerradura Pomo ", "precio": 147.00},
+{ "nombre": "Chaca Chaca", "precio": 10.00},
+{ "nombre": "Chamoy Mega 370ml.", "precio": 20.00},
+{ "nombre": "Chamoy Mega 500ml", "precio": 23.00},
+{ "nombre": "Chamoy Super Gato De 355ml", "precio": 19.50},
+{ "nombre": "Championes Rebanados Herdez 186g", "precio": 28.00},
+{ "nombre": "Champiñones Enteros Herdez 186g", "precio": 28.00},
+{ "nombre": "Charola Para Horno Chica", "precio": 15.00},
+{ "nombre": "Chayote", "precio": 26.00},
+{ "nombre": "Cheetos Bolitas 42g.", "precio": 17.00},
+{ "nombre": "Cheetos Flamin-hot 145g", "precio": 39.00},
+{ "nombre": "Cheetos Poffs 40g", "precio": 17.00},
+{ "nombre": "Cheetos Trociditos 240g", "precio": 59.50},
+{ "nombre": "Chetos Colmillos ", "precio": 17.00},
+{ "nombre": "Chetos Flaming Hot 55g", "precio": 17.00},
+{ "nombre": "Chetos Mix ", "precio": 59.50},
+{ "nombre": "Chetos Nacho 55g.", "precio": 17.00},
+{ "nombre": "Chetos Poffs 110g", "precio": 39.00},
+{ "nombre": "Chetos Torciditos 55g.", "precio": 17.00},
+{ "nombre": "Chetos Torcidos 145g", "precio": 39.00},
+{ "nombre": "Chicharon La Cachanilla ", "precio": 25.00},
+{ "nombre": "Chicharos Herdez 400g.", "precio": 17.50},
+{ "nombre": "Chicharos del Monte 200g.", "precio": 13.50},
+{ "nombre": "Chicharrines Las Pellitas", "precio": 15.00},
+{ "nombre": "Chicharron Cerdo 55g.", "precio": 24.00},
+{ "nombre": "Chicharron Con Lonja Las Pellitas", "precio": 26.00},
+{ "nombre": "Chicharron De Cerdo 70g.", "precio": 32.50},
+{ "nombre": "Chicharron De Cerdo 70gr", "precio": 43.00},
+{ "nombre": "Chicharron De Cerdo Barcel 30g", "precio": 12.00},
+{ "nombre": "Chicharron De Cerdo Crackling 30g.", "precio": 16.00},
+{ "nombre": "Chicharron De Lonja Yutzy 90g.", "precio": 29.00},
+{ "nombre": "Chicharron De Serdo 25g", "precio": 14.00},
+{ "nombre": "Chicharron El Campirano Chico", "precio": 28.00},
+{ "nombre": "Chicharron El Campirano100g.", "precio": 26.00},
+{ "nombre": "Chicharron La Michoacana 75g.", "precio": 29.00},
+{ "nombre": "Chicharron Lourdes Chilelimon 40g.", "precio": 24.00},
+{ "nombre": "Chicharron Rivera", "precio": 29.00},
+{ "nombre": "Chicharronbotanero Sinlonja", "precio": 26.00},
+{ "nombre": "Chicharrones  El Redil 80g", "precio": 24.50},
+{ "nombre": "Chicharrones 50g Yutzy", "precio": 23.00},
+{ "nombre": "Chicharrones El Chino--", "precio": 26.00},
+{ "nombre": "Chicharrones Yutzy 100g", "precio": 29.00},
+{ "nombre": "Chicle Bubbaloo Sabor Platano ", "precio": 3.00},
+{ "nombre": "Chicle Clorets Plus Cartera 13g.", "precio": 10.00},
+{ "nombre": "Chicle De La Roa 100pz 4.5 Gr", "precio": 3.00},
+{ "nombre": "Chicle Ice Cubes", "precio": 20.00},
+{ "nombre": "Chicle Trident X Twist Uva Naranja", "precio": 10.00},
+{ "nombre": "Chicles Tatoo 4", "precio": 4.00},
+{ "nombre": "Chicles Trident Cool Bubble", "precio": 10.00},
+{ "nombre": "Chicolastic Talla 4 40pz", "precio": 152.50},
+{ "nombre": "Chile California Seco", "precio": 185.00},
+{ "nombre": "Chile California Verde", "precio": 51.50},
+{ "nombre": "Chile Chiltepin La Familia", "precio": 50.00},
+{ "nombre": "Chile Chipotle Costeña 220g.-", "precio": 37.00},
+{ "nombre": "Chile Chipotle En Escabeche 215gr", "precio": 40.50},
+{ "nombre": "Chile Chipotle En Trozos 215 Gr", "precio": 43.00},
+{ "nombre": "Chile Chipotle San Marco 100gr", "precio": 23.00},
+{ "nombre": "Chile Chipotle San Marcos 215gr", "precio": 35.00},
+{ "nombre": "Chile De Arbol ", "precio": 140.00},
+{ "nombre": "Chile Guajillo Seco", "precio": 160.00},
+{ "nombre": "Chile Guerito Curtido", "precio": 52.00},
+{ "nombre": "Chile Guero", "precio": 44.50},
+{ "nombre": "Chile Pasilla ", "precio": 195.00},
+{ "nombre": "Chile Pico De Pajaro", "precio": 176.50},
+{ "nombre": "Chile Piquin La Abeja ", "precio": 25.00},
+{ "nombre": "Chile Rajas Costeña 380g.", "precio": 33.00},
+{ "nombre": "Chile Serrano 220gCoste", "precio": 19.00},
+{ "nombre": "Chile Verde Jalapeño", "precio": 52.00},
+{ "nombre": "Chile Verde Serrano.-", "precio": 65.00},
+{ "nombre": "Chile habanero", "precio": 130.00},
+{ "nombre": "Chilillo Punta De Broca ", "precio": 1.50},
+{ "nombre": "Chilorio De Cerdo Chata 215g.", "precio": 76.50},
+{ "nombre": "Chinola Colorfiel Cafe", "precio": 20.00},
+{ "nombre": "Chinola Nugget  Negra.", "precio": 20.00},
+{ "nombre": "Chinola Nugget Blanco 60ml.", "precio": 20.00},
+{ "nombre": "Chip Telcel", "precio": 50.00},
+{ "nombre": "Chipotles Barcel 65g", "precio": 15.00},
+{ "nombre": "Chips  Jalapeo 170g.", "precio": 57.00},
+{ "nombre": "Chips CSal 170g", "precio": 57.00},
+{ "nombre": "Chips Fuego 170g.", "precio": 57.00},
+{ "nombre": "Chips Fuego 60g", "precio": 22.00},
+{ "nombre": "Chips Fuego 62g.", "precio": 24.00},
+{ "nombre": "Chips Habanero", "precio": 24.00},
+{ "nombre": "Chips Jalapeño 60.-", "precio": 22.00},
+{ "nombre": "Chips Jalapeño 62g", "precio": 24.00},
+{ "nombre": "Chips Papatinas Blu 31g.", "precio": 14.00},
+{ "nombre": "Chips Sal 62g.", "precio": 24.00},
+{ "nombre": "Chiquitin Fresa Vasito", "precio": 7.00},
+{ "nombre": "Chiquitin Lala 42g", "precio": 10.00},
+{ "nombre": "Choco Choxs  81g", "precio": 13.00},
+{ "nombre": "Choco Crem Fresa 65g.", "precio": 22.00},
+{ "nombre": "Choco Flan Rebanada ", "precio": 25.00},
+{ "nombre": "Choco Krispis 38g Cajita ", "precio": 9.00},
+{ "nombre": "Choco Krispis Caja 540g.", "precio": 86.00},
+{ "nombre": "Choco Leche 473ml", "precio": 19.00},
+{ "nombre": "Choco Leche Jersey 250ml", "precio": 11.50},
+{ "nombre": "Choco Roles 80g", "precio": 22.00},
+{ "nombre": "Choco Roles Black", "precio": 23.00},
+{ "nombre": "Choco milk 160g.", "precio": 34.50},
+{ "nombre": "Chocokrispis Caja 290g.", "precio": 52.00},
+{ "nombre": "ChocolHersheys Milk", "precio": 16.50},
+{ "nombre": "ChocolNugs por pieza 28g", "precio": 10.00},
+{ "nombre": "ChocolSnickers Almond--", "precio": 15.00},
+{ "nombre": "Chocolala 330 Ml", "precio": 19.00},
+{ "nombre": "Chocolala 480ml.", "precio": 19.00},
+{ "nombre": "Chocolate 236ml", "precio": 10.00},
+{ "nombre": "Chocolate Abuelita Tableta", "precio": 20.00},
+{ "nombre": "Chocolate Almond Joy", "precio": 26.50},
+{ "nombre": "Chocolate Azucena 1lt.", "precio": 31.00},
+{ "nombre": "Chocolate Azucena 236ml", "precio": 15.00},
+{ "nombre": "Chocolate Azucena 473ml.", "precio": 19.00},
+{ "nombre": "Chocolate Ferrero 100g.", "precio": 84.50},
+{ "nombre": "Chocolate Hersheys 27g.", "precio": 14.00},
+{ "nombre": "Chocolate Hersheys Almond 27g.", "precio": 13.00},
+{ "nombre": "Chocolate Ibarra Con  6pz", "precio": 81.50},
+{ "nombre": "Chocolate Ibarra Suelto", "precio": 16.00},
+{ "nombre": "Chocolate Reeses King Size", "precio": 24.50},
+{ "nombre": "Chocolate Rocky Road", "precio": 21.00},
+{ "nombre": "Chocoretas Ricolino 50g", "precio": 20.00},
+{ "nombre": "Chocotorro 50g", "precio": 14.00},
+{ "nombre": "Chokis Brownie Chocotella 64g.", "precio": 19.00},
+{ "nombre": "Chokis Chocobase  73.5g.", "precio": 20.00},
+{ "nombre": "Chokis Chocobase.", "precio": 20.00},
+{ "nombre": "Chokis Clasica 180g.", "precio": 34.50},
+{ "nombre": "Chokis Clasica 76g.", "precio": 20.00},
+{ "nombre": "Chokis Rellena Chocolate 90g.", "precio": 20.00},
+{ "nombre": "Chorizo Cali De Res 200g.", "precio": 21.00},
+{ "nombre": "Chorizo Cali De Res 250g.", "precio": 27.00},
+{ "nombre": "Chorizo Cali Ranchero 200g", "precio": 24.00},
+{ "nombre": "Chorizo Cali Ranchero 250g.", "precio": 31.00},
+{ "nombre": "Chorizo Cali Tipo Español", "precio": 65.00},
+{ "nombre": "Chorizo Casero De Res Joaquin 180g", "precio": 20.00},
+{ "nombre": "Chorizo Casero Kir", "precio": 20.00},
+{ "nombre": "Chorizo De Puerco Reynaldos 311g.", "precio": 65.00},
+{ "nombre": "Chorizo De Res Reinaldos 311g", "precio": 65.00},
+{ "nombre": "Chorizo Kir Ranchero.-", "precio": 32.00},
+{ "nombre": "Chorizo Kir Taquero ", "precio": 27.00},
+{ "nombre": "Chorizo Ranchero Rosarito 250g", "precio": 32.00},
+{ "nombre": "Chorizo Suelto De Puerco", "precio": 14.00},
+{ "nombre": "Chorizo Suelto De Res ", "precio": 14.00},
+{ "nombre": "Chorizo Taquero Rosarito", "precio": 31.50},
+{ "nombre": "Chorizo tipo Sinaloa 250g Cali", "precio": 31.00},
+{ "nombre": "Chuleta Ahumada", "precio": 115.00},
+{ "nombre": "Chupabarrita Tix Tix con polvo-", "precio": 7.00},
+{ "nombre": "Chupon Con Miel", "precio": 8.00},
+{ "nombre": "Chupon Mordedera Baby", "precio": 10.00},
+{ "nombre": "Churritos Mi Carrito 75g.", "precio": 13.00},
+{ "nombre": "Churro Flamin 185 G", "precio": 38.00},
+{ "nombre": "Churros Coronel", "precio": 10.00},
+{ "nombre": "Churros De 12", "precio": 12.00},
+{ "nombre": "Churros El Vaquero ", "precio": 13.00},
+{ "nombre": "Churros Locos Monchi 140g", "precio": 24.00},
+{ "nombre": "Churrumais 185g.", "precio": 42.00},
+{ "nombre": "Churrumaiz 70g", "precio": 17.00},
+{ "nombre": "Chutazo Chocolate Y Rompope Pelota", "precio": 6.00},
+{ "nombre": "CiGARRO Suelto ", "precio": 7.00},
+{ "nombre": "Ciel Exprin Limon 600ml.", "precio": 13.00},
+{ "nombre": "Cigarro Faro Con Filtro.-", "precio": 32.00},
+{ "nombre": "Cigarro Maverick", "precio": 35.00},
+{ "nombre": "Cigarros Economicos ", "precio": 5.00},
+{ "nombre": "Cilantro Entero La Abeja", "precio": 12.00},
+{ "nombre": "Cilantro Especie ", "precio": 7.00},
+{ "nombre": "Cilantro Maso", "precio": 10.00},
+{ "nombre": "Cinco Lts De Agua", "precio": 8.00},
+{ "nombre": "Cinta Aislante Tuk 19mmx18m", "precio": 24.00},
+{ "nombre": "Cinta De Medir 3m Pretul De Colores", "precio": 33.00},
+{ "nombre": "Cinta Truper De 5m", "precio": 95.50},
+{ "nombre": "Ciruela Pasa La Familia", "precio": 18.00},
+{ "nombre": "Ciruela Pasa Molida ", "precio": 12.00},
+{ "nombre": "Clamato 163 ml.", "precio": 14.00},
+{ "nombre": "Clamato 296Ml.", "precio": 20.00},
+{ "nombre": "Clamato 473Ml.-", "precio": 31.00},
+{ "nombre": "Clamato 946 Ml.", "precio": 48.00},
+{ "nombre": "Clamato Cubano 473ml", "precio": 28.00},
+{ "nombre": "Del Valle Piña 1lt. Pet", "precio": 32.00},
+{ "nombre": "Del Valle Pulpy De Mango 400mts", "precio": 18.50},
+{ "nombre": "Del Valle Pulpy Durazno 400ml", "precio": 18.50},
+{ "nombre": "Delicias 153g.", "precio": 20.00},
+{ "nombre": "Delicias Chocolate", "precio": 22.00},
+{ "nombre": "Delicias Naranja", "precio": 22.00},
+{ "nombre": "Delicias Pay  Cookies 150g.", "precio": 20.00},
+{ "nombre": "Delicias Pay Fresa 150g.", "precio": 20.00},
+{ "nombre": "Delicias Pay Limon", "precio": 20.00},
+{ "nombre": "Deliciosas Chochitos 230g.", "precio": 26.00},
+{ "nombre": "Deliciosas Con Chochitos  Lara 216g", "precio": 26.00},
+{ "nombre": "Deliciosas Lara Chocolate 230g.", "precio": 26.00},
+{ "nombre": "Deliciosas Lara Vainilla", "precio": 26.00},
+{ "nombre": "Deliciosas Vainilla 230g.", "precio": 26.00},
+{ "nombre": "Desenfriol D", "precio": 10.00},
+{ "nombre": "Desenfriolito Plus", "precio": 5.00},
+{ "nombre": "Desodorante Rexona72h  210ml", "precio": 85.50},
+{ "nombre": "Desodorante Speed Stick 85g", "precio": 75.50},
+{ "nombre": "Desodorante Speed Stick Xtreme 85g", "precio": 79.50},
+{ "nombre": "Desodorante Stefano Aer.Cosmo159ml", "precio": 86.00},
+{ "nombre": "Desodorante Stefano Black Spray 60g.", "precio": 36.00},
+{ "nombre": "Desodorante Stefano Midnight 159ml.", "precio": 89.50},
+{ "nombre": "Destapa Corcho ", "precio": 25.00},
+{ "nombre": "Destapacaños", "precio": 39.50},
+{ "nombre": "Destapador", "precio": 20.00},
+{ "nombre": "Diamantina Bolsita", "precio": 7.00},
+{ "nombre": "Dilisiosas Betunadas Lara 216g", "precio": 26.00},
+{ "nombre": "Dip Carnes Y Aves 250g", "precio": 29.50},
+{ "nombre": "Dip Cebolla Cambray 35g.", "precio": 23.00},
+{ "nombre": "Dip Chipotle 35g", "precio": 24.00},
+{ "nombre": "Dip Ranch 35g", "precio": 23.00},
+{ "nombre": "Dip Sal Con Ajo Y Perejil 250g", "precio": 29.50},
+{ "nombre": "Dip Sal Con Pimienta 250g", "precio": 29.50},
+{ "nombre": "Dipazos Habanero 32g.", "precio": 9.00},
+{ "nombre": "Disco  Corte Fino Pretul 4 1/2", "precio": 15.00},
+{ "nombre": "Divalin Fresa-Vainilla 15g", "precio": 3.00},
+{ "nombre": "Dog Chow Adulto Razas Pequeñas ", "precio": 60.00},
+{ "nombre": "Dog Chow Adulto", "precio": 57.00},
+{ "nombre": "Dog Chow Cahorro Raza Pequeña ", "precio": 59.00},
+{ "nombre": "Dog Pawer.", "precio": 35.00},
+{ "nombre": "Donas Bimbo 158g ", "precio": 22.00},
+{ "nombre": "Donas Bimbo Con 2 Pzs. Tira", "precio": 11.00},
+{ "nombre": "Donitas Espolvoreadas 140G.", "precio": 22.50},
+{ "nombre": "Donitas Espolvoreadas 52.5g.", "precio": 11.00},
+{ "nombre": "Lala Griego Natural", "precio": 15.00},
+{ "nombre": "Lala Yomi Chocolate  190ml.", "precio": 12.00},
+{ "nombre": "Lala Yomi Fresa 190ml.", "precio": 12.00},
+{ "nombre": "Lala Yomi Vainilla 190ml.", "precio": 12.00},
+{ "nombre": "Lala100 Sin Lactosa54g", "precio": 37.00},
+{ "nombre": "Lampara Led Telescopica", "precio": 54.00},
+{ "nombre": "Lamparas Led De friccion ", "precio": 35.00},
+{ "nombre": "Lapiz ", "precio": 5.00},
+{ "nombre": "Lapiz Adhesivo Top 8g", "precio": 15.00},
+{ "nombre": "Lapiz Bic", "precio": 6.00},
+{ "nombre": "Lapiz Dixon ", "precio": 6.00},
+{ "nombre": "Laredo  Verde ", "precio": 36.00},
+{ "nombre": "Laredo Azul --", "precio": 36.00},
+{ "nombre": "Laredo Dorado", "precio": 38.00},
+{ "nombre": "Laredo Rojo.", "precio": 40.00},
+{ "nombre": "Lata Pedigree Adulto De Res 375g", "precio": 39.50},
+{ "nombre": "Lata Pedigree Adulto Pollo 375g.", "precio": 42.50},
+{ "nombre": "Laurel La Familia", "precio": 11.00},
+{ "nombre": "Lazo 2 Cabos", "precio": 25.00},
+{ "nombre": "Lazo 4 Cabos 10mts", "precio": 37.50},
+{ "nombre": "Leche Alpura Vaquita Chocolate", "precio": 11.00},
+{ "nombre": "Leche Alpura Vaquita Fresa 200ml", "precio": 11.00},
+{ "nombre": "Leche Entera  Azucena 1l ", "precio": 30.00},
+{ "nombre": "Leche Entera 480ml.", "precio": 17.00},
+{ "nombre": "Leche Fresa Jersey 473ml.", "precio": 18.50},
+{ "nombre": "Leche Gansito 236ml.", "precio": 13.00},
+{ "nombre": "Leche Jersey 3.785", "precio": 90.00},
+{ "nombre": "Ruffles Original 50g", "precio": 20.00},
+{ "nombre": "Ruffles Queso 120g", "precio": 39.00},
+{ "nombre": "Ruffles Queso Chicos 48g", "precio": 20.00},
+{ "nombre": "Rufles Crunch 48g", "precio": 20.00},
+{ "nombre": "Rufles Mix", "precio": 21.00},
+{ "nombre": "Rufles Mix", "precio": 21.00},
+{ "nombre": "Rufles Mix 55g.", "precio": 20.00},
+{ "nombre": "Rufles Original 120g.", "precio": 39.00},
+{ "nombre": "Rufles Original 185g.", "precio": 59.50},
+{ "nombre": "Rufles Queso 185g", "precio": 59.50},
+{ "nombre": "Rufles Queso 278.00},", "precio": 89.50},
+{ "nombre": "Runers 62g", "precio": 16.00},
+{ "nombre": "Runers Limon Y Sal 72g", "precio": 16.00},
+{ "nombre": "Runers Watz  80g.", "precio": 20.00},
+{ "nombre": "Runers Watz 55g.", "precio": 10.00},
+{ "nombre": "Runers Watz Fuego 55g.", "precio": 10.00},
+{ "nombre": "Runners  Chile Limon 95g.", "precio": 16.00},
+{ "nombre": "Runners Blueheat", "precio": 15.00},
+{ "nombre": "Runners Chile Limon 200g", "precio": 30.00},
+{ "nombre": "Runners Chile Limon 72g.", "precio": 17.00},
+{ "nombre": "Runners Fuego 62g.", "precio": 16.00},
+{ "nombre": "Runners Fuego Mas Producto", "precio": 17.00},
+{ "nombre": "Runners Limon", "precio": 19.00},
+{ "nombre": "Runners Wats Fuego 42g.-", "precio": 16.00},
+{ "nombre": "Runners Watz 80g", "precio": 20.00},
+{ "nombre": "Runners Watz Queso 42g.", "precio": 11.00},
+{ "nombre": "SACAPUNTAS", "precio": 5.00},
+{ "nombre": "SIDRAL MUNDET 1.5", "precio": 28.00},
+{ "nombre": "SPRITE 400 ML", "precio": 15.00},
+{ "nombre": "SUAVICREMAS CHOCOLATE 100G.", "precio": 18.00},
+{ "nombre": "SUAVICREMAS FRESA 100G.", "precio": 18.00},
+{ "nombre": "SUAVICREMAS VAINILLA 100G.", "precio": 18.00},
+{ "nombre": "SUAVITEL COMPLETE ACQUA 700ML.-", "precio": 31.00},
+{ "nombre": "SYNCOL ", "precio": 11.00},
+{ "nombre": "Saba Amore Nocturna Con Alas", "precio": 20.00},
+{ "nombre": "Saba Amore Regular C/A", "precio": 16.00},
+{ "nombre": "Saba Amore Regular S/A", "precio": 17.00},
+{ "nombre": "Sabritas Sal 105g", "precio": 43.00},
+{ "nombre": "Sabritones 165g.", "precio": 47.50},
+{ "nombre": "Saca Ceja", "precio": 15.00},
+{ "nombre": "Saca Sejas Suelto", "precio": 10.00},
+{ "nombre": "Sal Bahia 100gr", "precio": 13.50},
+{ "nombre": "Sal Bahia Bolsa 1kg", "precio": 19.00},
+{ "nombre": "Sal Bahia Bote 737g.", "precio": 22.00},
+{ "nombre": "Sal De Ajo La Familia", "precio": 11.00},
+{ "nombre": "Sal De Bote La Fina 1 Kg", "precio": 26.50},
+{ "nombre": "Sal De Uvas Picot", "precio": 6.00},
+{ "nombre": "Sal Hada  Bote De 800g", "precio": 18.50},
+{ "nombre": "Sal Hada Bolsa 1 Kg", "precio": 23.50},
+{ "nombre": "Sal La Fina 500g", "precio": 12.00},
+{ "nombre": "Sal La Fina Bote De 250g", "precio": 19.00},
+{ "nombre": "Sal La Fina De 1 Kg.", "precio": 24.00},
+{ "nombre": "Sal Mar De Cortes 1k", "precio": 16.50},
+{ "nombre": "Saladas Clasicas Lara 175g.", "precio": 19.00},
+{ "nombre": "Saladitas Gamesa 137g.", "precio": 21.00},
+{ "nombre": "Salchicha De Pavo Nutri Deli 250g.", "precio": 23.00},
+{ "nombre": "Salchicha De Pavo Nutri Deli 6pzs", "precio": 23.00},
+{ "nombre": "Salchicha Para Asar Clasica Rosarito", "precio": 39.00},
+{ "nombre": "Salchichas", "precio": 130.00},
+{ "nombre": "Salmas Horneadas  Caja De 144g.", "precio": 30.00},
+{ "nombre": "Salmas Horneadas 144g.", "precio": 24.00},
+{ "nombre": "Salsa 5 Chiles 210g ", "precio": 11.50},
+{ "nombre": "Salsa Aceite Macha Grande Don Jose.", "precio": 29.00},
+{ "nombre": "Salsa Amor Picante 1lt.", "precio": 29.50},
+{ "nombre": "Salsa Bbq Original 360g.", "precio": 44.50},
+{ "nombre": "Salsa Botanera 370ml.", "precio": 13.00},
+{ "nombre": "Salsa Bufalo Clasica 150g.", "precio": 18.00},
+{ "nombre": "Salsa Capsup Clemente Jacques 408g.", "precio": 19.00},
+{ "nombre": "Salsa Casera  Herdez 210g", "precio": 20.00},
+{ "nombre": "Salsa Casera Herdez 240g.", "precio": 23.00},
+{ "nombre": "Salsa Casera Jariosa Vaso", "precio": 26.00},
+{ "nombre": "Salsa Casera Verde Herdez", "precio": 25.00},
+{ "nombre": "Salsa Catsup Clemente Jacques 220g", "precio": 12.50},
+{ "nombre": "Salsa De Chile Pato 225g", "precio": 14.50},
+{ "nombre": "Salsa De Guacamole Herdez 240g.", "precio": 27.00},
+{ "nombre": "Salsa De Ostion 500g.", "precio": 44.50},
+{ "nombre": "Salsa De Soya Kikkoman 148ml.", "precio": 39.50},
+{ "nombre": "Salsa De Soya Maggi 140ml.", "precio": 24.00},
+{ "nombre": "Salsa De Soya Pekin 150ml", "precio": 20.00},
+{ "nombre": "Salsa Del Pato 287g.", "precio": 16.00},
+{ "nombre": "Salsa Guacamaya 150ml.", "precio": 12.50},
+{ "nombre": "Salsa Verde El Pato", "precio": 15.00},
+{ "nombre": "Salsa hunt", "precio": 56.00},
+{ "nombre": "Salvo Limon 300ml.-", "precio": 23.00},
+{ "nombre": "Salvo Limon 500ml.-", "precio": 37.00},
+{ "nombre": "Sandwichon Napolitano", "precio": 22.50},
+{ "nombre": "Sangria Cacera 600Ml", "precio": 19.00},
+{ "nombre": "Sangria Casera 2lts.", "precio": 30.00},
+{ "nombre": "Sardina Guaymex 425 Gms", "precio": 51.00},
+{ "nombre": "Sardinas Dolores 425g", "precio": 53.50},
+{ "nombre": "Saridon Caja C20 Pastill", "precio": 8.00},
+{ "nombre": "Savile Shampoo", "precio": 26.00},
+{ "nombre": "Sazonador Dipea Chilimon 180g.", "precio": 29.50},
+{ "nombre": "Sazonador Mariscos Dipea", "precio": 30.00},
+{ "nombre": "Scotch Brite Cero Rallas", "precio": 24.50},
+{ "nombre": "Sedalmerck 500mg.", "precio": 5.00},
+{ "nombre": "Segueta Bimetal 18d", "precio": 24.50},
+{ "nombre": "Seguros Para Ropa ", "precio": 2.00},
+{ "nombre": "Semilla Calabaza Manzela 80g.", "precio": 29.00},
+{ "nombre": "Semilla De Calabaza 30g.", "precio": 11.00},
+{ "nombre": "Semilla De Chia", "precio": 8.50},
+{ "nombre": "Semilla De Girasol 180g", "precio": 20.00},
+{ "nombre": "Semilla De Girasol Bokados 52g.", "precio": 12.00},
+{ "nombre": "Semilla De Girasol Lourdes  95g.", "precio": 15.00},
+{ "nombre": "Sidral MUNDET Lata 355 ML", "precio": 19.50},
+{ "nombre": "Sidral Mundet 300ml", "precio": 12.00},
+{ "nombre": "Sidrat Mundet 3lts", "precio": 45.00},
+{ "nombre": "Silica Acai Berry 30ml.", "precio": 33.00},
+{ "nombre": "Silica Chocolate Antifrizz 30ml.", "precio": 33.00},
+{ "nombre": "Silica Coco Antifrizz 30ml.", "precio": 33.00},
+{ "nombre": "Silica Fresa 30ml.", "precio": 33.00},
+{ "nombre": "Silica Uva Antifrizz 30ml.", "precio": 33.00},
+{ "nombre": "Silicon Blanco ", "precio": 92.50},
+{ "nombre": "Silicon Delgado Largo", "precio": 5.00},
+{ "nombre": "Silicon Grande", "precio": 8.00},
+{ "nombre": "Silk Almendra Sin Azucar 100ml", "precio": 49.50},
+{ "nombre": "Sincol Max", "precio": 14.50},
+{ "nombre": "Skittles 22g", "precio": 10.00},
+{ "nombre": "Skittles 22g", "precio": 10.00},
+{ "nombre": "Skittles Original Rojo 54g.", "precio": 19.00},
+{ "nombre": "Skittles Originales 61.5g-", "precio": 22.00},
+{ "nombre": "Skwikles Chunks  ", "precio": 18.00},
+{ "nombre": "Skwikles Salsagheti 70g.", "precio": 20.00},
+{ "nombre": "Skwinclote", "precio": 15.00},
+{ "nombre": "Skwinkles  Clasicos", "precio": 10.00},
+{ "nombre": "Skwinkles Relleno Sabor Piña", "precio": 10.00},
+{ "nombre": "Skwinkles Relleno Sabor Sandia", "precio": 10.00},
+{ "nombre": "Skwinkles Salsaghett Gusa", "precio": 10.00},
+{ "nombre": "Snapple Durazno 473ml", "precio": 22.00},
+{ "nombre": "Snapple Frambuesa De 473ml", "precio": 22.00},
+{ "nombre": "Snapple Limon 473ml", "precio": 22.00},
+{ "nombre": "Snickers Con Almendra.-", "precio": 20.00},
+{ "nombre": "Snickers", "precio": 22.00},
+{ "nombre": "Snikers Barra 48 Gr", "precio": 20.00},
+{ "nombre": "Sobre  Dog Chow Mix Pollo Y Carne", "precio": 12.00},
+{ "nombre": "Sobre Blanco", "precio": 3.00},
+{ "nombre": "Sobre Chocomil 18", "precio": 7.00},
+{ "nombre": "Sobre Dog Chow Adulto Carne 100g.", "precio": 13.00},
+{ "nombre": "Sopa Knor Coditos 95g", "precio": 21.00},
+{ "nombre": "Sopa Knor Fideo 95g.", "precio": 21.00},
+{ "nombre": "Sopa Knor Fideo CPollo.", "precio": 19.00},
+{ "nombre": "Sopa Knor Micky Mouse", "precio": 19.00},
+{ "nombre": "Sopa Knorr Estrellas 82g", "precio": 21.00},
+{ "nombre": "Sopa Knorr Letras 82g.", "precio": 21.00},
+{ "nombre": "Sopa Knorr MunicioneS.", "precio": 19.00},
+{ "nombre": "Soya A Granel", "precio": 45.50},
+{ "nombre": "Spaghetti Moderna 200g Sp", "precio": 10.00},
+{ "nombre": "Spaghetti Yemina 200", "precio": 8.00},
+{ "nombre": "Spam 340g", "precio": 94.50},
+{ "nombre": "Spirrones 25g.", "precio": 13.00},
+{ "nombre": "Splenda 6 Sobres Por 5 Pesos", "precio": 5.00},
+{ "nombre": "Sponch 120g", "precio": 22.00},
+{ "nombre": "Sponch Piña 120g.", "precio": 22.00},
+{ "nombre": "Sprite 1.5L", "precio": 28.00},
+{ "nombre": "Sprite 2L", "precio": 35.50},
+{ "nombre": "Sprite 3 Lt", "precio": 45.00},
+{ "nombre": "Sprite 300ml.", "precio": 12.00},
+{ "nombre": "Sprite 600ml", "precio": 20.00},
+{ "nombre": "Sprite Lata 235ml", "precio": 11.00},
+{ "nombre": "Squirt Toronja 1.5 lt.", "precio": 23.00},
+{ "nombre": "Squirt Toronja 2L", "precio": 29.00},
+{ "nombre": "Squirt Toronja 3l", "precio": 47.50},
+{ "nombre": "Squirt Toronja 600 Ml", "precio": 17.00},
+{ "nombre": "Squirt Toronja Bote", "precio": 17.00},
+{ "nombre": "Standard Toma Corriente Plastico ", "precio": 14.50},
+{ "nombre": "Storm Rodenticida (pastilla Azul)", "precio": 21.00},
+{ "nombre": "Straps 40cm.Blanco", "precio": 5.00},
+{ "nombre": "Straps Kingman 30cm. Negro", "precio": 4.00},
+{ "nombre": "Suavi Cremas Fresa", "precio": 18.00},
+{ "nombre": "Suavi Cremas Vanilla 112g", "precio": 18.00},
+{ "nombre": "Suavicremas Chocolate 112g", "precio": 18.00},
+{ "nombre": "Suavitel Fresca Primabera 700ml", "precio": 28.00},
+{ "nombre": "Suavitel Fresca Primavera 850ml.", "precio": 29.00},
+{ "nombre": "Suavitel Fresca Primvera 450ml.", "precio": 21.00},
+{ "nombre": "Submarinos Chocoavellana 50gr", "precio": 11.00},
+{ "nombre": "Submarinos Chocolate", "precio": 21.00},
+{ "nombre": "Submarinos Fresa 105g", "precio": 21.00},
+{ "nombre": "Submarinos Vainilla 105g", "precio": 21.00},
+{ "nombre": "Suero Sabor Piña 625ml.", "precio": 26.00},
+{ "nombre": "Super Glue ", "precio": 18.00},
+{ "nombre": "T-Tochos Mix Original 300g.", "precio": 45.00},
+{ "nombre": "TAMPICO 236ML", "precio": 11.50},
+{ "nombre": "TAMPICO 473ml", "precio": 13.50},
+{ "nombre": "TAPE Tuck 179", "precio": 35.00},
+{ "nombre": "TEMPRA BOOST ", "precio": 8.00},
+{ "nombre": "TINTA FUERTE NEGRA Pacsa", "precio": 29.50},
+{ "nombre": "TORTILLA LA NEGRITA 8PZS.", "precio": 20.00},
+{ "nombre": "TORTILLINAS 22PIEZAS 418GR", "precio": 44.00},
+{ "nombre": "TOSTADITAS LOURDES NATURAL 125G.", "precio": 22.00},
+{ "nombre": "Tabcin Active", "precio": 18.00},
+{ "nombre": "Tabcin Efervescente Azul", "precio": 6.00},
+{ "nombre": "Tabcin Noche ", "precio": 18.00},
+{ "nombre": "Tajin 142g.", "precio": 41.00},
+{ "nombre": "Takis Azul 70g.", "precio": 19.00},
+{ "nombre": "Takis Dragon ", "precio": 19.00},
+{ "nombre": "Zuko Piña", "precio": 6.00},
+{ "nombre": "Zuko Piñacolada", "precio": 7.00},
+{ "nombre": "Zuko Sandia", "precio": 6.00},
+{ "nombre": "Zuko Tamarindo", "precio": 7.00},
+{ "nombre": "Zuko Te Helado Durazno", "precio": 15.00},
+{ "nombre": "Zuko Te Helado Limon", "precio": 15.00},
+{ "nombre": "Zuko Uva.", "precio": 7.00},
+{ "nombre": "conchas Tia Rosa", "precio": 22.00},
+{ "nombre": "Consola de Videojuegos", "precio":80}
+  ];
+
+    // Función simplificada de cargarProductos
+    async function cargarProductos() {
+      console.log('Productos disponibles:', productos.length);
+      return true;
+    }
+
+    // Función optimizada para generar ticket diario
+    function generarTicketDiario(totalDia) {
+      console.log('[GTD1] === INICIO generarTicketDiario ===');
+      console.log('[GTD2] Total a generar:', totalDia);
+      
+      try {
+        let ticket = [];
+        let total = totalDia;
+        let intentos = 0;
+        const maxIntentos = 100;
+
+        console.log('[GTD3] Ordenando productos');
+        const productosOrdenados = [...productos].sort((a, b) => b.precio - a.precio);
+        console.log('[GTD4] Productos ordenados:', productosOrdenados.length);
+        
+        while (total > 0 && intentos < maxIntentos) {
+          console.log(`[GTD5] Intento ${intentos + 1}, total restante: ${total}`);
+          const productosValidos = productosOrdenados.filter(p => p.precio <= total);
+          console.log('[GTD6] Productos válidos encontrados:', productosValidos.length);
+          
+          if (productosValidos.length === 0) {
+            console.log('[GTD7] No hay productos válidos, ajustando último producto');
+            ticket.push({
+              nombre: "Ajuste",
+              precio: Number(total.toFixed(2))
+            });
+            break;
+          }
+
+          const indice = Math.floor(Math.random() * productosValidos.length);
+          const producto = productosValidos[indice];
+          console.log('[GTD8] Producto seleccionado:', producto.nombre, producto.precio);
+          
+          ticket.push(producto);
+          total = Number((total - producto.precio).toFixed(2));
+          intentos++;
+        }
+
+        console.log('[GTD9] === FIN generarTicketDiario ===');
+        console.log('[GTD10] Ticket generado con', ticket.length, 'productos');
+        return ticket;
+      } catch (error) {
+        console.error('[ERROR-GTD] Error en generarTicketDiario:', error);
+        throw error;
+      }
+    }
 
     // Autodetectar el mes actual
     document.addEventListener("DOMContentLoaded", function() {
       const hoy = new Date();
-      const mesActual = hoy.getMonth() + 1; // Mes actual (1 para enero, 12 para diciembre)
+      const mesActual = hoy.getMonth() + 1;
       document.getElementById('mes').value = mesActual;
       console.log(`Mes actual detectado: ${mesActual}`);
     });
 
-    // Validar el campo de entrada y mostrar alerta con SweetAlert2
+    // Validar campos y generar tickets
     async function validarCampos() {
-	Swal.fire({
-  title: 'GENERANDO TICKETS...',
-  text: 'Por favor, espera.',
-  allowOutsideClick: false,
-  didOpen: () => {
-    Swal.showLoading(); // Muestra un indicador de carga
-  }
-});
-      console.log('Inicio de validación de campos.');
-      const totalMes = parseFloat(document.getElementById('totalMes').value);
-      
-      if (!totalMes || totalMes < 24000 || totalMes > 45000) {
-        console.log('Validación fallida: Total mensual fuera de rango.');
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'La venta total mensual debe estar entre $24,000.00 y $45,000.00',
-        });
-        return;
-      }
-
-      console.log('Validación exitosa: Campos correctos.');
-      
-      // Si pasa la validación, llamar a la función para generar los tickets
+      console.log('=== INICIO validarCampos ===');
       try {
-        await generarTickets();
-      } catch (error) {
-        console.error('Error al generar tickets:', error);
+        console.log('[1] Iniciando validación de campos');
+        const totalMes = parseFloat(document.getElementById('totalMes').value);
+        console.log('[2] Total del mes ingresado:', totalMes);
+        
+        if (!totalMes || isNaN(totalMes) || totalMes < 23000 || totalMes > 45000) {
+          console.log('[3] Validación fallida. Valor inválido:', totalMes);
+          await Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'La venta total mensual debe estar entre $23,000.00 y $45,000.00',
+          });
+          return;
+        }
+
+        console.log('[4] Validación exitosa. Preparando alerta de progreso...');
+        
+        // Mostrar la alerta de progreso y comenzar el proceso
+        console.log('[5] Configurando SweetAlert...');
         Swal.fire({
+          title: 'GENERANDO TICKETS...',
+          text: 'Por favor, espera.',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          willOpen: () => {
+            console.log('[6] willOpen - Alerta a punto de mostrarse');
+          },
+          didOpen: async (modalElement) => {
+            console.log('[7] didOpen - Alerta mostrada, iniciando proceso...');
+            try {
+              console.log('[8] Mostrando loading spinner');
+              Swal.showLoading();
+              
+              console.log('[9] Llamando a generarTickets()');
+              await generarTickets();
+              
+              console.log('[10] Generación completada, cerrando alerta de progreso');
+              Swal.close();
+              
+              console.log('[11] Mostrando mensaje de éxito');
+              await Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: 'TICKETS Y RESUMEN MENSUAL CREADOS CON ÉXITO.',
+              });
+              console.log('[12] Proceso completado con éxito');
+            } catch (error) {
+              console.error('[ERROR] Error durante la generación:', error);
+              Swal.close();
+              await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al generar los tickets. Por favor, intenta nuevamente.',
+              });
+            }
+          }
+        });
+        console.log('[13] SweetAlert configurado');
+        
+      } catch (error) {
+        console.error('[ERROR] Error en validarCampos:', error);
+        Swal.close();
+        await Swal.fire({
           icon: 'error',
           title: 'Error',
           text: 'Ocurrió un error al generar los tickets. Por favor, intenta nuevamente.',
@@ -105,183 +711,239 @@
       }
     }
 
-    let productos = [];
-
-    // Cargar productos del JSON
-    async function cargarProductos() {
-      console.log('Inicio de carga de productos.');
-      try {
-        const response = await fetch('productos.json');
-        if (!response.ok) {
-          throw new Error('No se pudo cargar productos.json');
-        }
-        const data = await response.json();
-        productos = data.productos;
-        console.log(`Productos cargados: ${productos.length} productos disponibles.`);
-      } catch (error) {
-        console.error('Error cargando productos:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudieron cargar los productos. Por favor, intenta de nuevo más tarde.',
-        });
-        throw error; // Re-throw para manejarlo en validarCampos
-      }
-    }
-
-// Función para generar tickets
-async function generarTickets() {
-  await cargarProductos(); // Asegurarse de que los productos estén cargados
-
-  const totalMes = parseInt(document.getElementById('totalMes').value, 10);
-  const mes = parseInt(document.getElementById('mes').value, 10);
-  const diasDelMes = new Date(2025, mes, 0).getDate();
-
-  // Validación del total mensual
-  if (totalMes < 24000 || totalMes > 45000) {
-    alert("La venta total mensual debe estar entre $27,000 y $45,000.");
-    return;
-  }
-
-  const totalDiarioMin = 500;
-  const totalDiarioMax = 1500;
-  let ticketsTotales = [];
-
-  // Validar que es posible tener ventas únicas
-  const posiblesVentas = totalDiarioMax - totalDiarioMin + 1; // 1001 valores únicos
-  if (diasDelMes > posiblesVentas) {
-    alert(`No es posible generar ${diasDelMes} ventas únicas dentro del rango ${totalDiarioMin} - ${totalDiarioMax}.`);
-    return;
-  }
-
-  // Calcular la suma mínima y máxima posible con ventas únicas
-  let sumaMin = 0;
-  for (let i = 0; i < diasDelMes; i++) {
-    sumaMin += totalDiarioMin + i;
-  }
-
-  let sumaMax = 0;
-  for (let i = 0; i < diasDelMes; i++) {
-    sumaMax += totalDiarioMax - i;
-  }
-
-  if (totalMes < sumaMin || totalMes > sumaMax) {
-    alert(`No es posible generar un total mensual de ${totalMes} con ventas únicas. El mínimo posible es ${sumaMin} y el máximo es ${sumaMax}.`);
-    return;
-  }
-
-  // Crear una lista de posibles ventas
-  let posiblesVentasList = [];
-  for (let v = totalDiarioMin; v <= totalDiarioMax; v++) {
-    posiblesVentasList.push(v);
-  }
-
-  // Shuffle la lista de posibles ventas para distribuir aleatoriamente
-  for (let i = posiblesVentasList.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [posiblesVentasList[i], posiblesVentasList[j]] = [posiblesVentasList[j], posiblesVentasList[i]];
-  }
-
-  // Implementar una función de backtracking para seleccionar ventas únicas que sumen totalMes
-  let ventasSeleccionadas = [];
-
-  function backtrack(index, currentSum, path) {
-    if (path.length === diasDelMes) {
-      if (currentSum === totalMes) {
-        ventasSeleccionadas = [...path];
-        return true;
-      }
-      return false;
-    }
-
-    for (let i = index; i < posiblesVentasList.length; i++) {
-      const venta = posiblesVentasList[i];
+    // Función para generar ventas diarias
+    function generarVentasDiarias(diasDelMes, totalMes) {
+      console.log('[GVD1] === INICIO generarVentasDiarias ===');
+      console.log('[GVD2] Parámetros:', { diasDelMes, totalMes });
       
-      // Si la suma actual más la venta excede el totalMes, saltar
-      if (currentSum + venta > totalMes) continue;
-
-      // Añadir la venta al camino
-      path.push(venta);
-
-      // Recursivamente intentar añadir más ventas
-      if (backtrack(i + 1, currentSum + venta, path)) {
-        return true;
-      }
-
-      // Remover la venta si no conduce a una solución
-      path.pop();
-    }
-
-    return false;
-  }
-
-  const success = backtrack(0, 0, []);
-
-  if (!success) {
-    alert("No se pudo generar una distribución de ventas únicas que coincida con el total mensual.");
-    return;
-  }
-
-  // Asignar las ventas seleccionadas a los tickets
-  for (let i = 0; i < diasDelMes; i++) {
-    const dia = i + 1;
-    const totalDia = ventasSeleccionadas[i];
-    const ticket = generarTicketDiario(totalDia);
-    ticketsTotales.push({ dia, ticket, totalDia });
-    console.log(`Venta final para el día ${dia}: $${totalDia}`);
-  }
-
-  // Mostrar tickets en consola y generar PDFs
-  //mostrarTicketsEnConsola(ticketsTotales);
-  await generarPDF(ticketsTotales);
-  await generarPDFResumenMensual(ticketsTotales);  
-
-  console.log('Proceso de generación de tickets y PDFs completado.');
-}
-
-    // Generar ticket diario con un total específico
-    function generarTicketDiario(totalDia) {
-      console.log('Generando ticket diario.');
-      let ticket = [];
-      let total = totalDia;
-
-      let iteraciones = 0;
-      const maxIteraciones = 100;
-      while (total > 0 && iteraciones < maxIteraciones) {
-        let producto = productos[Math.floor(Math.random() * productos.length)];
-        if (total - producto.precio >= 0) {
-          ticket.push(producto);
-          total -= producto.precio;
-        } else if (total > 0) {
-          // Ajustar el último producto para que coincida con el total restante
-          let productoAjustado = { ...producto, precio: total };
-          ticket.push(productoAjustado);
-          total = 0;
+      try {
+        const totalDiarioMin = 500.00;
+        const totalDiarioMax = 1500.00;
+        const promedioObjetivo = totalMes / diasDelMes;
+        const esEntero = Number.isInteger(totalMes);
+        console.log('[GVD3] Configuración inicial:', { totalDiarioMin, totalDiarioMax, promedioObjetivo, esEntero });
+        
+        console.log('[GVD4] Determinando días con terminación .50');
+        // Si el total es entero, ajustamos el número de días con .50 para que la suma sea entera
+        const diasCon50Centavos = esEntero ? 
+          Math.floor(diasDelMes * 0.3) * 2 % 2 === (totalMes % 2) ? 
+            Math.floor(diasDelMes * 0.3) : 
+            Math.floor(diasDelMes * 0.3) - 1 : 
+          Math.floor(diasDelMes * 0.3);
+        
+        let indices = Array.from({ length: diasDelMes }, (_, i) => i);
+        indices = indices.sort(() => Math.random() - 0.5);
+        const diasCon50 = new Set(indices.slice(0, diasCon50Centavos));
+        
+        console.log('[GVD5] Iniciando generación de ventas');
+        let ventas = new Array(diasDelMes);
+        let sumaTotal = 0;
+        
+        // Primera pasada: generar ventas iniciales
+        for (let i = 0; i < diasDelMes; i++) {
+          const variacion = (Math.random() - 0.5) * 0.4;
+          let venta = promedioObjetivo * (1 + variacion);
+          
+          // Aplicar patrones semanales
+          const diaSemana = i % 7;
+          if (diaSemana === 5) venta *= 1.15;      // Sábado
+          else if (diaSemana === 6) venta *= 1.1;  // Domingo
+          else if (diaSemana === 1) venta *= 0.9;  // Lunes
+          
+          // Aplicar patrones quincenales
+          if (i === 14 || i === 29) venta *= 1.1;
+          
+          // Forzar terminación en .50 o .00
+          if (diasCon50.has(i)) {
+            venta = Math.floor(venta) + 0.50;
+          } else {
+            venta = Math.floor(venta) + 0.00;
+          }
+          
+          // Aplicar límites
+          venta = Math.max(totalDiarioMin, Math.min(totalDiarioMax, venta));
+          // Asegurar que termine en .00 o .50
+          if (diasCon50.has(i)) {
+            venta = Math.floor(venta) + 0.50;
+          } else {
+            venta = Math.floor(venta) + 0.00;
+          }
+          
+          ventas[i] = venta;
+          sumaTotal += venta;
         }
-        iteraciones++;
+        
+        console.log('[GVD6] Primera pasada completada. Suma total:', sumaTotal, 'Objetivo:', totalMes);
+        
+        // Ajustar al total mensual
+        let diferencia = totalMes - sumaTotal;
+        console.log('[GVD7] Diferencia a ajustar:', diferencia);
+        
+        // Distribuir la diferencia entre los días disponibles
+        while (Math.abs(diferencia) >= 0.01) {
+          console.log('[GVD8] Iniciando distribución de diferencia:', diferencia);
+          
+          // Encontrar días que pueden ser ajustados
+          let diasAjustables = [];
+          for (let i = 0; i < diasDelMes; i++) {
+            let nuevaVenta = ventas[i];
+            if (diferencia > 0) {
+              // Si necesitamos aumentar
+              nuevaVenta = diasCon50.has(i) ? 
+                Math.floor(ventas[i] + 0.5) + 0.5 : 
+                Math.floor(ventas[i] + 1);
+            } else {
+              // Si necesitamos disminuir
+              nuevaVenta = diasCon50.has(i) ? 
+                Math.floor(ventas[i]) + 0.5 : 
+                Math.floor(ventas[i]);
+            }
+            
+            if (nuevaVenta >= totalDiarioMin && nuevaVenta <= totalDiarioMax && nuevaVenta !== ventas[i]) {
+              diasAjustables.push(i);
+            }
+          }
+          
+          if (diasAjustables.length === 0) {
+            console.log('[GVD9] No hay más días ajustables');
+            break;
+          }
+          
+          // Ajustar un día aleatorio
+          const diaAjuste = diasAjustables[Math.floor(Math.random() * diasAjustables.length)];
+          let nuevaVenta;
+          
+          // Si el total es entero, asegurarnos de mantener el balance correcto de .50
+          if (esEntero) {
+            const sumaActual = ventas.reduce((sum, v) => sum + v, 0);
+            const necesitaPoint50 = Math.round((totalMes - (sumaActual - ventas[diaAjuste])) * 2) % 2 === 1;
+            nuevaVenta = necesitaPoint50 ? 
+              Math.floor(ventas[diaAjuste]) + 0.50 : 
+              Math.floor(ventas[diaAjuste] + 0.5);
+          } else {
+            if (diferencia > 0) {
+              nuevaVenta = diasCon50.has(diaAjuste) ? 
+                Math.floor(ventas[diaAjuste] + 0.5) + 0.5 : 
+                Math.floor(ventas[diaAjuste] + 1);
+            } else {
+              nuevaVenta = diasCon50.has(diaAjuste) ? 
+                Math.floor(ventas[diaAjuste]) + 0.5 : 
+                Math.floor(ventas[diaAjuste]);
+            }
+          }
+          
+          const ajuste = nuevaVenta - ventas[diaAjuste];
+          ventas[diaAjuste] = nuevaVenta;
+          diferencia -= ajuste;
+          
+          console.log(`[GVD10] Ajustado día ${diaAjuste + 1} de ${ventas[diaAjuste]} a ${nuevaVenta}, diferencia restante: ${diferencia}`);
+        }
+        
+        // Verificación final
+        sumaTotal = ventas.reduce((sum, venta) => sum + venta, 0);
+        console.log('[GVD11] Verificación final - Suma total:', sumaTotal, 'Objetivo:', totalMes, 'Diferencia:', totalMes - sumaTotal);
+        
+        if (Math.abs(totalMes - sumaTotal) >= 0.01) {
+          console.log('[GVD12] Aplicando ajuste final forzado');
+          // Ajuste final forzado en el último día posible
+          for (let i = diasDelMes - 1; i >= 0; i--) {
+            const diferenciaFinal = totalMes - sumaTotal;
+            let nuevaVenta;
+            
+            if (esEntero) {
+              // Si el total debe ser entero, calcular si necesitamos .50 o no
+              const sumaSinUltimo = ventas.reduce((sum, v, idx) => idx !== i ? sum + v : sum, 0);
+              const necesitaPoint50 = Math.round((totalMes - sumaSinUltimo) * 2) % 2 === 1;
+              nuevaVenta = necesitaPoint50 ? 
+                Math.floor(ventas[i] + diferenciaFinal) + 0.50 : 
+                Math.round(ventas[i] + diferenciaFinal);
+            } else {
+              nuevaVenta = diasCon50.has(i) ? 
+                Math.floor(ventas[i] + diferenciaFinal) + 0.50 : 
+                Math.floor(ventas[i] + diferenciaFinal + 0.5);
+            }
+            
+            if (nuevaVenta >= totalDiarioMin && nuevaVenta <= totalDiarioMax) {
+              ventas[i] = nuevaVenta;
+              sumaTotal = ventas.reduce((sum, venta) => sum + venta, 0);
+              console.log(`[GVD13] Ajuste final aplicado en día ${i + 1}, nueva suma total: ${sumaTotal}`);
+              break;
+            }
+          }
+        }
+        
+        console.log('[GVD14] === FIN generarVentasDiarias ===');
+        return ventas;
+      } catch (error) {
+        console.error('[ERROR-GVD] Error en generarVentasDiarias:', error);
+        throw error;
       }
-
-      if (iteraciones >= maxIteraciones) {
-        console.warn('Se alcanzó el límite de iteraciones al generar el ticket diario.');
-      }
-
-      return ticket;
     }
 
-    // Función para mostrar los tickets en la consola
-    function mostrarTicketsEnConsola(ticketsTotales) {
-      console.log('Mostrando tickets en la consola.');
-      let sumaTotalMes = 0;
-      ticketsTotales.forEach(({ dia, ticket, totalDia }) => {
-        console.log(`Ticket del día ${dia}:`);
-        ticket.forEach(producto => {
-          console.log(`${producto.nombre} --------- $${producto.precio.toFixed(2)}`);
-        });
-        console.log(`Total: Día ${dia}: $${totalDia.toFixed(2)}\n`);
-        sumaTotalMes += totalDia;
-      });
+    // Función para formatear el precio en el PDF
+    function formatearPrecio(precio) {
+      if (Math.abs(precio % 1 - 0.5) < 0.01) {
+        return precio.toFixed(2); // Siempre mostrar .50
+      } else {
+        return precio.toFixed(2); // Siempre mostrar .00
+      }
+    }
 
-      console.log(`\nSuma total de todos los tickets del mes: $${sumaTotalMes.toFixed(2)}`);
+    // Función principal para generar tickets
+    async function generarTickets() {
+      console.log('[GT1] === INICIO generarTickets ===');
+      try {
+        console.log('[GT2] Obteniendo valores de entrada');
+        const totalMes = parseFloat(document.getElementById('totalMes').value);
+        const mes = parseInt(document.getElementById('mes').value, 10);
+        const diasDelMes = new Date(2025, mes, 0).getDate();
+        console.log('[GT3] Parámetros iniciales:', { totalMes, mes, diasDelMes });
+        
+        console.log('[GT4] Esperando actualización de UI');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        console.log('[GT5] Iniciando generación de ventas diarias');
+        const ventasSeleccionadas = generarVentasDiarias(diasDelMes, totalMes);
+        console.log('[GT6] Ventas diarias generadas:', ventasSeleccionadas);
+
+        console.log('[GT7] Iniciando generación de tickets individuales');
+        let ticketsTotales = [];
+        for (let i = 0; i < diasDelMes; i++) {
+          const dia = i + 1;
+          console.log(`[GT8] Procesando día ${dia}`);
+          const totalDia = ventasSeleccionadas[i];
+          console.log(`[GT9] Generando ticket día ${dia}: $${totalDia}`);
+          const ticket = generarTicketDiario(totalDia);
+          ticketsTotales.push({ dia, ticket, totalDia });
+          
+          console.log(`[GT10] Actualizando progreso para día ${dia}`);
+          await Swal.update({
+            text: `Generando ticket ${dia} de ${diasDelMes}...`
+          });
+          
+          console.log('[GT11] Esperando actualización de UI');
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
+          if (i % 5 === 0) {
+            console.log(`[GT12] Progreso: ${Math.round((i/diasDelMes) * 100)}%`);
+          }
+        }
+
+        console.log('[GT13] Iniciando generación de PDFs');
+        await Swal.update({
+          text: 'Generando archivos PDF...'
+        });
+        
+        console.log('[GT14] Generando PDF de tickets diarios');
+        await generarPDF(ticketsTotales);
+        console.log('[GT15] Generando PDF de resumen mensual');
+        await generarPDFResumenMensual(ticketsTotales);
+
+        console.log('[GT16] === FIN generarTickets ===');
+      } catch (error) {
+        console.error('[ERROR-GT] Error en generarTickets:', error);
+        throw error;
+      }
     }
 
     // Redondear precio a medio punto
@@ -289,236 +951,149 @@ async function generarTickets() {
       return (Math.round(precio * 2) / 2).toFixed(2);
     }
 
-	
-	// Función delay para agregar tiempo de espera
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    // Función delay para agregar tiempo de espera
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+    // Función para generar PDF de todos los tickets
+    async function generarPDF(ticketsTotales) {
+      const { jsPDF } = window.jspdf;
+      let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
+      const pageWidth = 58;
 
-// Función para generar PDF de todos los tickets con un retraso entre cada generación
-async function generarPDF(ticketsTotales) {
-  console.log('Inicio de generación de PDFs de tickets diarios.');
-  const { jsPDF } = window.jspdf;
-  let folio = Math.floor(Math.random() * (50000 - 12453 + 1)) + 12453;
-  const pageWidth = 58; // Ancho estándar de una impresora térmica de 58mm (convertido a mm)
+      for (const { dia, ticket, totalDia } of ticketsTotales) {
+        let pageHeight = 20;
+        const lineHeight = 7;
+        const linesPerProduct = ticket.map(producto => {
+          const nombreProducto = `${producto.nombre}: $${formatearPrecio(producto.precio)}`;
+          return Math.ceil(nombreProducto.length / 20);
+        });
+        linesPerProduct.forEach(lineCount => {
+          pageHeight += lineCount * lineHeight;
+        });
 
-  for (const { dia, ticket, totalDia } of ticketsTotales) {
-    console.log(`Generando PDF para el día ${dia}.`);
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: [pageWidth, pageHeight]
+        });
 
-    // Calcular la altura de la página considerando cada línea de texto
-    let pageHeight = 20; // Espacio inicial para el título, fecha y folio
-    const lineHeight = 7; // Altura de cada línea de texto
-    const linesPerProduct = ticket.map(producto => {
-      const nombreProducto = `${producto.nombre}: $${redondearPrecio(producto.precio)}`;
-      return Math.ceil(nombreProducto.length / 20); // Dividir en líneas de aprox. 20 caracteres
-    });
-    
-    // Sumar la altura necesaria para cada línea de cada producto
-    linesPerProduct.forEach(lineCount => {
-      pageHeight += lineCount * lineHeight;
-    });
+        let y = 5;
+        let x = 5;
+        const mesSeleccionado = document.getElementById('mes').value;
+        const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
 
-    pageHeight += 0; // Espacio adicional para el total y el pie de página
+        doc.setFont("courier", "bold");
+        doc.setFontSize(11);
+        y += 8;
+        doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' });
+        doc.setFontSize(10);
+        y += 5;
+        doc.text("COL. TODOS SANTOS", pageWidth / 2, y, { align: 'center' });
+        doc.setFontSize(9);
+        y += 8;
+        doc.text(`Fecha: ${dia}/${nombreMes}/2025`, x, y);
+        y += 5;
+        folio += 1;
+        doc.text(`Folio: ${folio}`, x, y);
+        y += 8;
+        doc.text("------VENTAS DEL DÍA------", pageWidth / 2, y, { align: 'center' });
+        y += 8;
+        doc.setFont("courier", "normal");
+        doc.setFontSize(8);
 
-    // Crear un nuevo documento PDF para cada ticket
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [pageWidth, pageHeight] // Formato ajustado a la altura dinámica del ticket
-    });
+        for (const producto of ticket) {
+          const nombreProducto = `${producto.nombre}: $${formatearPrecio(producto.precio)}`;
+          const lineas = doc.splitTextToSize(nombreProducto, pageWidth - 10);
+          for (const linea of lineas) {
+            doc.text(linea, x, y);
+            y += 5;
+          }
+        }
 
-    let y = 5; // Margen superior
-    let x = 5; // Margen izquierdo
-    const mesSeleccionado = document.getElementById('mes').value;
-    const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
+        doc.setFont("courier", "bold");
+        doc.text("-----------------------------", pageWidth / 2, y, { align: 'center' });
+        y += 5;
+        doc.setFontSize(9);
+        doc.text(`Venta Total: $${formatearPrecio(totalDia)}`, pageWidth / 2, y, { align: 'center' });
+        y += 10;
 
-    // Poner el título en negritas y centrado
-    doc.setFont("courier", "bold"); // Cambiar a negrita
-    doc.setFontSize(11); // Tamaño más grande para el título
-    y += 8; // Espacio después del título
-    doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
-    doc.setFontSize(10);
-    y += 5; // Espacio después del título
-    doc.text("COL. TODOS SANTOS", pageWidth / 2, y, { align: 'center' }); // Centrar el texto
-    doc.setFontSize(9);
-    y += 8; // Espacio después del título
-    doc.text(`Fecha: ${dia}/${nombreMes}/2025`, x, y);
-    y += 5;
-    folio += 1;
-    doc.text(`Folio: ${folio}`, x, y);
-    y += 8;
-    doc.text("------VENTAS DEL DÍA------", pageWidth / 2, y, { align: 'center' });
-    y += 8;
-    doc.setFont("courier", "normal");
-    doc.setFontSize(8);
-
-    for (const producto of ticket) {
-      const nombreProducto = `${producto.nombre}: $${redondearPrecio(producto.precio)}`;
-      const lineas = doc.splitTextToSize(nombreProducto, pageWidth - 10); // Ajustar el ancho permitido
-      for (const linea of lineas) {
-        doc.text(linea, x, y);
-        y += 5; // Espacio entre líneas
+        doc.save(`Venta_${dia}_de_${nombreMes}_2025.pdf`);
+        await delay(1000);
       }
     }
 
-    doc.setFont("courier", "bold");
-    doc.text("-----------------------------", pageWidth / 2, y, { align: 'center' });
-    y += 5;
-    doc.setFontSize(9);
-    doc.text(`Venta Total: $${Math.floor(totalDia.toFixed(2))}.00`, pageWidth / 2, y, { align: 'center' });
-    y += 10;
-
-    // Guardar el PDF
-    try {
-      await descargarPDF(doc, `Venta_${dia}_de_${nombreMes}_2025.pdf`);
-      console.log(`PDF generado y descargado para el día ${dia}.`);
-    } catch (error) {
-      console.error(`Error al descargar el PDF para el día ${dia}:`, error);
-    }
-
-    // Agrega un retraso de 1 segundo antes de pasar al siguiente ticket
-    console.log('Total de Venta del Día:', totalDia);
-    await delay(1000);
-  }
-
-  console.log('Todos los PDFs de tickets diarios han sido generados.');
-}
-
-    
-	
-    // Función para descargar el PDF utilizando Promesas
-    function descargarPDF(doc, nombreArchivo) {
-      return new Promise((resolve, reject) => {
-        try {
-          doc.save(nombreArchivo);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-
-    // Función para generar PDF resumen mensual
+    // Actualizar la generación del PDF de resumen
     async function generarPDFResumenMensual(ticketsTotales) {
-      console.log('Inicio de generación del PDF resumen mensual.');
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'letter' // Tamaño carta
+        format: 'letter'
       });
 
-      let y = 20; // Margen superior inicial
-      const pageWidth = 210; // Ancho de página carta en mm
+      let y = 20;
+      const pageWidth = 210;
       const mesSeleccionado = document.getElementById('mes').value;
       const nombreMes = document.querySelector(`#mes option[value="${mesSeleccionado}"]`).textContent;
 
-      // Título en la parte superior centrado
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text("ABARROTES DEL BOYO", pageWidth / 2, y, { align: 'center' });
       y += 10;
 
-      // Subtítulo con el mes
       doc.setFontSize(12);
       doc.text(`Resumen de ventas del mes de ${nombreMes} 2025`, pageWidth / 2, y, { align: 'center' });
       y += 20;
 
       let sumaTotalMes = 0;
-      let xColumna1 = 20; // Posición de la primera columna
-      let xColumna2 = 120; // Posición de la segunda columna
-      let columnaActual = 1; // Controla en qué columna estamos
+      let xColumna1 = 20;
+      let xColumna2 = 120;
+      let columnaActual = 1;
       let yColumna1 = y;
       let yColumna2 = y;
 
-      // Listar cada día con su venta, distribuyendo en dos columnas
       for (const { dia, totalDia } of ticketsTotales) {
         if (columnaActual === 1) {
-          // Primera columna
           doc.setFont("helvetica", "bold");
           doc.text(`Día ${dia}:`, xColumna1, yColumna1);
           doc.setFont("helvetica", "normal");
-          doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna1 + 30, yColumna1);
-          
+          doc.text(`Venta total: $${formatearPrecio(totalDia)}`, xColumna1 + 30, yColumna1);
           yColumna1 += 10;
-
-          if (yColumna1 > 270) { // Si la columna se llena, cambiar a la siguiente columna
+          if (yColumna1 > 270) {
             columnaActual = 2;
-            console.log(`Cambio a la segunda columna en el resumen mensual.`);
           }
         } else {
-          // Segunda columna
           doc.setFont("helvetica", "bold");
           doc.text(`Día ${dia}:`, xColumna2, yColumna2);
           doc.setFont("helvetica", "normal");
-          doc.text(`Venta total: $${Math.floor(totalDia.toFixed(2))}.00`, xColumna2 + 30, yColumna2);
+          doc.text(`Venta total: $${formatearPrecio(totalDia)}`, xColumna2 + 30, yColumna2);
           yColumna2 += 10;
-
-          if (yColumna2 > 270) { // Si la segunda columna se llena, añadir una nueva página
+          if (yColumna2 > 270) {
             doc.addPage();
-            yColumna1 = 20; // Reiniciar la primera columna en la nueva página
-            yColumna2 = 20; // Reiniciar la segunda columna en la nueva página
-            columnaActual = 1; // Volver a la primera columna
-            console.log(`Añadida nueva página en el resumen mensual.`);
+            yColumna1 = 20;
+            yColumna2 = 20;
+            columnaActual = 1;
           }
         }
-
         sumaTotalMes += totalDia;
       }
 
-      // Asegurar espacio suficiente para el resumen final en la segunda columna
       let yResumen = Math.max(yColumna1, yColumna2) + 20;
-      
       if (columnaActual === 2 && yColumna2 + 20 <= 270) {
-        yResumen = yColumna2 + 20; // Mostrar en la segunda columna si hay espacio
+        yResumen = yColumna2 + 20;
       } else if (yResumen > 270) {
-        // Si no hay espacio suficiente en la página actual, agregar una nueva página
         doc.addPage();
-        yResumen = 20; // Reiniciar el margen superior en la nueva página
-        console.log(`Añadida nueva página para el resumen final mensual.`);
+        yResumen = 20;
       }
 
-      // Ajustar el texto del resumen más a la derecha
-      let xResumen = 120; // Ajusta este valor para mover más a la derecha el texto
-
-      // Resumen final con el total de todas las ventas del mes
+      let xResumen = 120;
       doc.setFont("helvetica", "bold");
       doc.text("Resumen final", xResumen, yResumen);
       yResumen += 10;
-      doc.text(`Venta Total: $${sumaTotalMes.toFixed(2)}`, xResumen, yResumen);
-	  yResumen += 40;
+      doc.text(`Venta Total: $${formatearPrecio(sumaTotalMes)}`, xResumen, yResumen);
       
-      // Guardar el PDF resumen mensual
-      try {
-        await descargarPDF(doc, `Resumen_Ventas_${nombreMes}_2025.pdf`);
-        console.log(`PDF resumen mensual generado y descargado para el mes de ${nombreMes}.`);
-        Swal.close();
-		Swal.fire({
-          icon: 'success',
-          title: 'Éxito',
-          text: 'TICKETS Y RESUMEN MENSUAL CREADOS CON ÉXITO.',
-        });
-      } catch (error) {
-        console.error('Error al descargar el PDF resumen mensual:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Ocurrió un error al generar el resumen mensual. Por favor, intenta nuevamente.',
-        });
-      }
+      doc.save(`Resumen_Ventas_${nombreMes}_2025.pdf`);
     }
-
-    // Función para descargar el PDF utilizando Promesas
-    function descargarPDF(doc, nombreArchivo) {
-      return new Promise((resolve, reject) => {
-        try {
-          doc.save(nombreArchivo);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    }
-
   </script>
 </body>
 </html>
