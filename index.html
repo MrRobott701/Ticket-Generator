@@ -25,7 +25,7 @@
       <div class="col-md-6 offset-md-3">
         <form>
           <div class="mb-3">
-            <label for="totalMes" class="form-label">Venta total del mes (mínimo $23000, máximo $45000):</label>
+            <label for="totalMes" class="form-label">Venta total del mes (mínimo $23000, máximo $50000):</label>
             <input type="text" id="totalMes" class="form-control" placeholder="Ingrese la venta total" required maxlength="5" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
           </div>
           <div class="mb-3">
@@ -645,7 +645,7 @@
         const totalMes = parseFloat(document.getElementById('totalMes').value);
         console.log('[2] Total del mes ingresado:', totalMes);
         
-        if (!totalMes || isNaN(totalMes) || totalMes < 23000 || totalMes > 45000) {
+        if (!totalMes || isNaN(totalMes) || totalMes < 23000 || totalMes > 50000) {
           console.log('[3] Validación fallida. Valor inválido:', totalMes);
           await Swal.fire({
             icon: 'error',
@@ -717,8 +717,8 @@
       console.log('[GVD2] Parámetros:', { diasDelMes, totalMes });
       
       try {
-        const totalDiarioMin = 500.00;
-        const totalDiarioMax = 1500.00;
+        const totalDiarioMin = 1000.00;
+        const totalDiarioMax = 3000.00;
         const promedioObjetivo = totalMes / diasDelMes;
         const esEntero = Number.isInteger(totalMes);
         console.log('[GVD3] Configuración inicial:', { totalDiarioMin, totalDiarioMax, promedioObjetivo, esEntero });
@@ -789,14 +789,18 @@
             let nuevaVenta = ventas[i];
             if (diferencia > 0) {
               // Si necesitamos aumentar
-              nuevaVenta = diasCon50.has(i) ? 
-                Math.floor(ventas[i] + 0.5) + 0.5 : 
-                Math.floor(ventas[i] + 1);
+              if (diasCon50.has(i)) {
+                nuevaVenta = Math.floor(ventas[i]) + 1.50; // Aumentar en 1.00
+              } else {
+                nuevaVenta = Math.floor(ventas[i]) + 1.00; // Aumentar en 1.00
+              }
             } else {
               // Si necesitamos disminuir
-              nuevaVenta = diasCon50.has(i) ? 
-                Math.floor(ventas[i]) + 0.5 : 
-                Math.floor(ventas[i]);
+              if (diasCon50.has(i)) {
+                nuevaVenta = Math.floor(ventas[i]) - 0.50; // Disminuir en 1.00
+              } else {
+                nuevaVenta = Math.floor(ventas[i]) - 1.00; // Disminuir en 1.00
+              }
             }
             
             if (nuevaVenta >= totalDiarioMin && nuevaVenta <= totalDiarioMax && nuevaVenta !== ventas[i]) {
@@ -817,18 +821,24 @@
           if (esEntero) {
             const sumaActual = ventas.reduce((sum, v) => sum + v, 0);
             const necesitaPoint50 = Math.round((totalMes - (sumaActual - ventas[diaAjuste])) * 2) % 2 === 1;
-            nuevaVenta = necesitaPoint50 ? 
-              Math.floor(ventas[diaAjuste]) + 0.50 : 
-              Math.floor(ventas[diaAjuste] + 0.5);
+            if (diferencia > 0) {
+              nuevaVenta = necesitaPoint50 ? 
+                Math.floor(ventas[diaAjuste]) + 1.50 : 
+                Math.floor(ventas[diaAjuste]) + 1.00;
+            } else {
+              nuevaVenta = necesitaPoint50 ? 
+                Math.floor(ventas[diaAjuste]) - 0.50 : 
+                Math.floor(ventas[diaAjuste]) - 1.00;
+            }
           } else {
             if (diferencia > 0) {
               nuevaVenta = diasCon50.has(diaAjuste) ? 
-                Math.floor(ventas[diaAjuste] + 0.5) + 0.5 : 
-                Math.floor(ventas[diaAjuste] + 1);
+                Math.floor(ventas[diaAjuste]) + 1.50 : 
+                Math.floor(ventas[diaAjuste]) + 1.00;
             } else {
               nuevaVenta = diasCon50.has(diaAjuste) ? 
-                Math.floor(ventas[diaAjuste]) + 0.5 : 
-                Math.floor(ventas[diaAjuste]);
+                Math.floor(ventas[diaAjuste]) - 0.50 : 
+                Math.floor(ventas[diaAjuste]) - 1.00;
             }
           }
           
